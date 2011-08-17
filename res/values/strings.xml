@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fail Blog Viewer</string>
+    <string name="favorites">Favorites</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="title_settings_cacheCount">Picture Cache</string>
+    <string name="summary_settings_cacheCount">Determine the maximum number of images to cache for quick viewing.</string>
+    <string name="dialog_title_settings_cacheCount">Enter Number</string>
+    <string name="title_settings_updateInterval">Update Interval</string>
+    <string name="summary_settings_updateInterval">How long to wait before checking for new content.</string>
+    <string name="dialog_title_settings_updateInterval">Enter Minutes</string>
+    <string name="share_label">Share</string>
+    <string name="favorite_label">Add As Favorite</string>
+</resources>

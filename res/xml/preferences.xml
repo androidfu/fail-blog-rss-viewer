@@ -1,0 +1,18 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceCategory android:title="Settings"
+						android:summary="Edit Application Settings">
+		
+		<EditTextPreference android:key="cacheCount"
+							android:title="@string/title_settings_cacheCount"
+							android:summary="@string/summary_settings_cacheCount"
+							android:dialogTitle="@string/dialog_title_settings_cacheCount" />
+							
+		<EditTextPreference android:key="updateInterval"
+							android:title="@string/title_settings_updateInterval"
+							android:summary="@string/summary_settings_updateInterval"
+							android:dialogTitle="@string/dialog_title_settings_updateInterval" />
+		
+	</PreferenceCategory>
+
+</PreferenceScreen>
