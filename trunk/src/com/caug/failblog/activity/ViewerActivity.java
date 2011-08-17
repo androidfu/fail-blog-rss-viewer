@@ -29,7 +29,7 @@ public class ViewerActivity extends Activity
 	{
 		// This is where you tell this activity which menu layout to use
 	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.shop_screen_menu, menu);
+	    inflater.inflate(R.menu.viewer_menu, menu);
 	    return true;
 	}
 	
@@ -42,6 +42,7 @@ public class ViewerActivity extends Activity
 	    switch (item.getItemId()) 
 	    {
 	    	case R.id.menu_favorites:
+	    		startActivity(new Intent(this, FavoritesActivity.class));
 	    		return true;
 	    		
 	    	case R.id.menu_settings:
@@ -49,6 +50,7 @@ public class ViewerActivity extends Activity
 	    		return true;
 	    		
 	    	case R.id.menu_about:
+	    		startActivity(new Intent(this, AboutActivity.class));
 	    		return true;
 	    		
 		    default:
