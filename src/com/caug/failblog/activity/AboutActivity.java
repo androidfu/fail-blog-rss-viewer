@@ -1,7 +1,11 @@
 package com.caug.failblog.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class AboutActivity extends Activity 
 {
@@ -10,6 +14,10 @@ public class AboutActivity extends Activity
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.about);
+		
+		Button backButton = (Button) findViewById(R.id.btn_back);
+		
+		backButton.setOnClickListener(backButtonClicked);
     }
 	
 	@Override
@@ -17,4 +25,12 @@ public class AboutActivity extends Activity
     {
 		super.onResume();
     }
+	
+	private OnClickListener backButtonClicked = new OnClickListener()
+	{
+		public void onClick(View v)
+		{
+			startActivity(new Intent(getBaseContext(), ViewerActivity.class));
+		}
+	};
 }
