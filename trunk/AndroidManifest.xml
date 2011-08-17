@@ -6,7 +6,7 @@
 	<application android:icon="@drawable/icon" android:label="@string/app_name">
 		
 		<!-- Main activity mapping goes here -->
-		<activity android:name=".ViewerActivity" android:label="@string/app_name">
+		<activity android:name=".SplashActivity" android:label="@string/app_name" android:noHistory="true">
         	<intent-filter>
         		<action android:name="android.intent.action.MAIN" />
         		<category android:name="android.intent.category.LAUNCHER" />
@@ -17,7 +17,7 @@
         <activity android:name=".AboutActivity"></activity>
         <activity android:name=".FavoritesActivity"></activity>
         <activity android:name=".SettingsActivity"></activity>
-        
+        <activity android:name=".ViewerActivity"></activity>
     </application>
     
     <!-- Permissions go here -->

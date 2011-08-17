@@ -75,10 +75,6 @@
 			
 		</LinearLayout>
 				   
-	</RelativeLayout>   
-	
-	<ImageView android:id="@+id/splashscreen" android:layout_width="fill_parent"
-			   android:layout_height="fill_parent" android:src="@drawable/splash"
-               android:layout_gravity="center" android:background="@drawable/splash_background"/>
+	</RelativeLayout>	
 	
 </RelativeLayout>
