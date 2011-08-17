@@ -14,5 +14,5 @@
     <string name="favorite_label">Add As Favorite</string>
     <string name="back">Back</string>
     <string name="about_title">About This App</string>
-    <string name="about_description">This is a sample app made for the Cincinnati Android User Group.  This app will read in an RSS feed from failblog.com and display the resulting images in a gallery format for the user to freely and easily browse through.  Advanced features include the ability to add certain images as favorites, cache images for faster loading, and the ability to share an image through some common social media platforms.</string>
+    <string name="about_description">This is a sample app made for the Cincinnati Android User Group.  This app will read in an RSS feed from failblog.org and display the resulting images in a gallery format for the user to freely and easily browse through.  Advanced features include the ability to add certain images as favorites, cache images for faster loading, and the ability to share an image through some common social media platforms.</string>
 </resources>
