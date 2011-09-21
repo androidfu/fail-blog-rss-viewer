@@ -74,6 +74,20 @@
 			</RelativeLayout>
 			
 		</LinearLayout>
+		
+		<TextView android:id="@+id/tv_imagePaging" 
+				  android:layout_width="fill_parent" 
+				  android:layout_height="wrap_content"
+				  android:layout_alignParentBottom="true"
+				  android:gravity="center_horizontal"
+				  android:text="Image 0 of 0" />
+				  
+		<TextView android:id="@+id/tv_imageTitle" 
+				  android:layout_width="fill_parent" 
+				  android:layout_height="wrap_content"
+				  android:layout_above="@id/tv_imagePaging"
+				  android:gravity="center_horizontal"
+				  android:text="No Title" />
 				   
 	</RelativeLayout>	
 	
