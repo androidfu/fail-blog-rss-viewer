@@ -116,6 +116,13 @@ public class FailblogSQL extends BaseSQL
 		
 		sqLiteDatabase.delete(SQLHelper.TABLE_NAME_IMAGE_CACHE, whereClause, whereArgs);
 	}
+	
+	public void truncateImageCache()
+	{
+		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
+
+		sqLiteDatabase.delete(SQLHelper.TABLE_NAME_IMAGE_CACHE, null, null);
+	}
 
 	private ImageCache mapImageCache(Cursor cursor)
 	{

@@ -7,4 +7,19 @@
 			   android:layout_height="fill_parent" android:src="@drawable/splash"
                android:layout_gravity="center" android:background="@drawable/splash_background"/>
 	
+	<ProgressBar
+			android:id="@+id/progress"
+		    android:layout_width="fill_parent"
+			android:layout_height="10dip"
+			android:layout_alignParentBottom="true"
+		    style="?android:attr/progressBarStyleHorizontal" />
+	
+	<TextView
+		android:id="@+id/tv_progress" 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:gravity="center_horizontal" 
+		android:layout_above="@id/progress" 
+		android:text="Downloading Images" />
+	
 </RelativeLayout>
