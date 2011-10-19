@@ -10,6 +10,8 @@ import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,6 +41,11 @@ public class ViewerActivity extends Activity
 	
 	private RssLogic rssLogic;
 	
+	private static SharedPreferences sharedPreferences;
+	
+	public static final String PREFERENCES_NAME = "fail_prefs";
+	public static final String PREFERENCE_PAGE_NUMBER = "lastPageNumber";
+	
 	public void onCreate(Bundle savedInstanceState) 
     {
 		super.onCreate(savedInstanceState);
@@ -52,6 +59,8 @@ public class ViewerActivity extends Activity
 		favoriteImage = (ImageView) findViewById(R.id.iv_favorite);
 		imagePaging = (TextView) findViewById(R.id.tv_imagePaging);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
+		
+		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
 		
 		previousImage.setOnClickListener(new OnClickListener() {
 			public void onClick(View v)
@@ -79,7 +88,13 @@ public class ViewerActivity extends Activity
 		rssLogic = new RssLogic(this);
 		pageNumber = 1;
 		imageCacheList = rssLogic.getImageCacheList(pageNumber, 0);
-		
+
+		int lastPageNumber = sharedPreferences.getInt(PREFERENCE_PAGE_NUMBER, 1);
+		if(lastPageNumber > 0)
+		{
+			pageNumber = lastPageNumber;
+		}
+
 		loadImage(pageNumber);
     }
 	
@@ -97,10 +112,17 @@ public class ViewerActivity extends Activity
 	
 	private void loadImage(int pageNumber)
 	{
+		Editor editor = sharedPreferences.edit();
+		if(editor != null)
+		{
+			editor.putInt(PREFERENCE_PAGE_NUMBER, pageNumber);
+			editor.commit();
+		}
+		
 		ImageCache imageCache = imageCacheList.get(pageNumber - 1);
 		
 		if(imageCache != null)
-		{
+		{	
 			// Load the image from local cache first
 			Drawable image = null;
 			String imageUri = null;
