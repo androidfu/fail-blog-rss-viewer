@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 		  android:versionCode="1"
-		  android:versionName="1.0" package="com.caug.failblog.activity">
+		  android:versionName="1.0" 
+		  package="com.caug.failblog.activity">
 
-	<application android:icon="@drawable/icon" android:label="@string/app_name">
+	<application android:icon="@drawable/icon" android:label="@string/app_name" android:debuggable="true">
 		
 		<!-- Main activity mapping goes here -->
 		<activity android:name=".SplashActivity" android:label="@string/app_name" android:noHistory="true">
