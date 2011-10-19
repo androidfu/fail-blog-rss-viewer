@@ -2,6 +2,7 @@ package com.caug.failblog.activity;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 
 import org.apache.http.HttpResponse;
 
@@ -10,6 +11,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -109,9 +111,11 @@ public class SplashActivity extends Activity
 						try {
 							rssLogic.saveImageCacheFromXml(xmlResponse.getEntity().getContent(), onProgressUpdated);
 						} catch (IllegalStateException e) {
-							e.printStackTrace();
+							Log.e("Feed Parser", "IllegalStateException", e);
 						} catch (IOException e) {
-							e.printStackTrace();
+							Log.e("Feed Parser", "IOException", e);
+						} catch (NoSuchAlgorithmException e) {
+							Log.e("Feed Parser", "NoSuchAlgorithmException", e);
 						}
 						
 						Message msg = new Message();

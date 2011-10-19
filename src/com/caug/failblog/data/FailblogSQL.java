@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.util.Log;
 
 public class FailblogSQL extends BaseSQL 
 {
@@ -51,6 +52,38 @@ public class FailblogSQL extends BaseSQL
 		return imageCache;
 	}
 
+	public ImageCache getImageCacheByGuidHash(String guidHash)
+	{
+		ImageCache imageCache = null;
+
+		String[] projection = null; // Get all columns
+		String selection = ImageCache.Columns.GUID_HASH + " = ?";
+		String[] selectionArgs = { guidHash };
+		String sortOrder = null;
+
+		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
+		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
+		sqLiteQueryBuilder.setTables(SQLHelper.TABLE_NAME_IMAGE_CACHE);
+		
+		Cursor cursor = null;
+		try
+		{
+			cursor = sqLiteQueryBuilder.query(sqLiteDatabase, projection, selection, selectionArgs, null, null, sortOrder);
+	
+			if(cursor != null && cursor.moveToFirst())
+			{
+				imageCache = mapImageCache(cursor);
+			}
+		}finally{
+			if(cursor != null)
+			{
+				cursor.close();
+			}
+		}
+		
+		return imageCache;
+	}
+	
 	public List<ImageCache> getImageCacheList(int pageNumber, int recordsPerPage)
 	{
 		List<ImageCache> imageCacheList = new ArrayList<ImageCache>();
@@ -87,7 +120,7 @@ public class FailblogSQL extends BaseSQL
 		return imageCacheList;
 	}
 
-	public void saveImageCache(int id, String name, String localImageUri, String remoteImageUri, String remoteEntryUri)
+	public void saveImageCache(int id, String name, String localImageUri, String remoteImageUri, String remoteEntryUri, String guidHash, boolean favorite)
 	{
 		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
 
@@ -97,6 +130,8 @@ public class FailblogSQL extends BaseSQL
 		contentValues.put(ImageCache.Columns.LOCAL_IMAGE_URI, localImageUri);
 		contentValues.put(ImageCache.Columns.REMOTE_IMAGE_URI, remoteImageUri);
 		contentValues.put(ImageCache.Columns.REMOTE_ENTRY_URI, remoteEntryUri);
+		contentValues.put(ImageCache.Columns.GUID_HASH, guidHash);
+		contentValues.put(ImageCache.Columns.FAVORITE, favorite?1:0);
 
 		int rowCount = sqLiteDatabase.update(SQLHelper.TABLE_NAME_IMAGE_CACHE, contentValues, ImageCache.Columns._ID + " = ?", new String[]{ Integer.toString(id) });
 		if(rowCount == 0)
@@ -105,6 +140,30 @@ public class FailblogSQL extends BaseSQL
 
 			sqLiteDatabase.insert(SQLHelper.TABLE_NAME_IMAGE_CACHE, null, contentValues);
 		}
+	}
+
+	public void saveImageCacheLocalImageUri(int id, String localImageUri)
+	{
+		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
+
+		ContentValues contentValues = new ContentValues();
+
+		contentValues.put(ImageCache.Columns.LOCAL_IMAGE_URI, localImageUri);
+
+		int rowCount = sqLiteDatabase.update(SQLHelper.TABLE_NAME_IMAGE_CACHE, contentValues, ImageCache.Columns._ID + " = ?", new String[]{ Integer.toString(id) });
+		
+		Log.d("FailblogSQL Update", "Rows Updated: " + rowCount);
+	}
+
+	public void saveImageCacheFavorite(int id, boolean favorite)
+	{
+		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
+
+		ContentValues contentValues = new ContentValues();
+
+		contentValues.put(ImageCache.Columns.FAVORITE, favorite?1:0);
+
+		sqLiteDatabase.update(SQLHelper.TABLE_NAME_IMAGE_CACHE, contentValues, ImageCache.Columns._ID + " = ?", new String[]{ Integer.toString(id) });
 	}
 
 	public void deleteImageCache(int id)
@@ -116,14 +175,14 @@ public class FailblogSQL extends BaseSQL
 		
 		sqLiteDatabase.delete(SQLHelper.TABLE_NAME_IMAGE_CACHE, whereClause, whereArgs);
 	}
-	
+
 	public void truncateImageCache()
 	{
 		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
 
 		sqLiteDatabase.delete(SQLHelper.TABLE_NAME_IMAGE_CACHE, null, null);
 	}
-
+	
 	private ImageCache mapImageCache(Cursor cursor)
 	{
 		ImageCache imageCache = new ImageCache();
@@ -133,6 +192,9 @@ public class FailblogSQL extends BaseSQL
 		imageCache.setLocalImageUri(cursor.getString(cursor.getColumnIndex(ImageCache.Columns.LOCAL_IMAGE_URI)));
 		imageCache.setRemoteImageUri(cursor.getString(cursor.getColumnIndex(ImageCache.Columns.REMOTE_IMAGE_URI)));
 		imageCache.setRemoteEntryUri(cursor.getString(cursor.getColumnIndex(ImageCache.Columns.REMOTE_ENTRY_URI)));
+		imageCache.setGuidHash(cursor.getString(cursor.getColumnIndex(ImageCache.Columns.GUID_HASH)));
+		imageCache.setFavorite(cursor.getInt(cursor.getColumnIndex(ImageCache.Columns.FAVORITE)) > 0);
+		
 		try{ imageCache.setEnteredDate(SQL_DATE.parse(cursor.getString(cursor.getColumnIndex(ImageCache.Columns.ENTERED_DATE)))); }catch(Exception e){}
 
 		return imageCache;

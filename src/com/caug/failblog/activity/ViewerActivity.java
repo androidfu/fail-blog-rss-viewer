@@ -1,5 +1,6 @@
 package com.caug.failblog.activity;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -11,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -82,7 +84,18 @@ public class ViewerActivity extends Activity
 		
 		if(imageCache != null)
 		{
-			Drawable image = ImageOperations(this, imageCache.getRemoteImageUri(), null);
+			// Load the image from local cache first
+			Drawable image = null;
+			String imageUri = null;
+			if(imageCache.getLocalImageUri() != null && imageCache.getLocalImageUri().trim().length() > 0)
+			{
+				imageUri = imageCache.getLocalImageUri();
+			}else{
+				imageUri = storeImageLocally(imageCache);
+				imageCache.setLocalImageUri(imageUri);
+			}
+			
+			image = getImage(this, imageUri);
 			mainImage.setImageDrawable(image);
 			
 			imageTitle.setText(imageCache.getName());
@@ -108,19 +121,55 @@ public class ViewerActivity extends Activity
 		}
 	}
 	
-	private Drawable ImageOperations(Context ctx, String url, String saveFilename)
+	private Drawable getImage(Context ctx, String name)
 	{
 		try {
-			InputStream is = (InputStream) this.fetch(url);
+			InputStream is = openFileInput(name);
 			Drawable d = Drawable.createFromStream(is, "src");
 			return d;
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			return null;
 		} catch (IOException e) {
-			e.printStackTrace();
+			Log.e("Get Image", "IOException", e);
 			return null;
 		}
+	}
+	
+	private String storeImageLocally(ImageCache imageCache)
+	{
+		int id = imageCache.getId();
+		String guidHash = imageCache.getGuidHash();
+		String extention = "jpg";
+		int lastPeriod = imageCache.getRemoteImageUri().lastIndexOf(".");
+		if(lastPeriod > 0)
+		{
+			extention = imageCache.getRemoteImageUri().substring(lastPeriod + 1);
+		}
+
+		try {
+			InputStream inputStream = (InputStream)fetch(imageCache.getRemoteImageUri());
+			
+			FileOutputStream fos = openFileOutput(guidHash + "." + extention, Context.MODE_PRIVATE);
+			int length = -1;
+			byte[] buffer = new byte[1024];
+			
+			while((length = inputStream.read(buffer)) > 0)
+			{
+				fos.write(buffer, 0, length);
+			}
+			fos.flush();
+			fos.close();
+			inputStream.close();
+			
+			rssLogic.saveImageCacheLocalImageUri(id, guidHash + "." + extention);
+			
+		} catch (MalformedURLException e) {
+			Log.e("Get Image", "MalformedURLException", e);
+			return null;
+		} catch (IOException e) {
+			Log.e("Get Image", "IOException", e);
+			return null;
+		}
+		
+		return guidHash + "." + extention;
 	}
 	
 	public Object fetch(String address) throws MalformedURLException, IOException

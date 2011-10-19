@@ -2,6 +2,7 @@ package com.caug.failblog.logic;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import com.caug.failblog.other.RssItem;
 import com.caug.failblog.service.Client;
 import com.caug.failblog.service.HttpRequestBuilder;
 import com.caug.failblog.service.ResponseListener;
+import com.caug.failblog.util.Encryption;
 
 public class RssLogic extends BaseLogic
 {
@@ -67,10 +69,8 @@ public class RssLogic extends BaseLogic
 		}
 	}
 	
-	public void saveImageCacheFromXml(InputStream xmlStream, Handler progressHandler)
+	public void saveImageCacheFromXml(InputStream xmlStream, Handler progressHandler)throws NoSuchAlgorithmException
 	{
-		failblogSQL.truncateImageCache();
-		
 		SAXParserFactory factory = SAXParserFactory.newInstance();
         try {
             SAXParser parser = factory.newSAXParser();
@@ -78,6 +78,7 @@ public class RssLogic extends BaseLogic
             parser.parse(xmlStream, handler);
             
             rssItemList = (ArrayList<RssItem>)handler.getRssItemList();
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -97,9 +98,18 @@ public class RssLogic extends BaseLogic
         		String localImageUri = null;
         		String remoteImageUri = rssItem.getImageUrl();
         		String remoteEntryUri = rssItem.getLink();
-        		
-        		failblogSQL.saveImageCache(id, name, localImageUri, remoteImageUri, remoteEntryUri);
-        		
+        		String guidHash = Encryption.hashToHex(remoteEntryUri);
+
+	    		if(remoteImageUri.equalsIgnoreCase("jpg") || remoteImageUri.equalsIgnoreCase("jpeg") || remoteImageUri.equalsIgnoreCase("gif") || remoteImageUri.equalsIgnoreCase("png"))
+	    		{
+	        		// Only update the cache if the record is not there
+	        		ImageCache imageCache = failblogSQL.getImageCacheByGuidHash(guidHash);
+	        		if(imageCache == null)
+	        		{
+	        			failblogSQL.saveImageCache(id, name, localImageUri, remoteImageUri, remoteEntryUri, guidHash, false);
+	        		}
+	    		}
+	    		
         		// Notify progress bar
         		msg = new Message();
             	msg.arg1 = 0;
@@ -112,5 +122,10 @@ public class RssLogic extends BaseLogic
 	public List<ImageCache> getImageCacheList(int pageNumber, int recordsPerPage)
 	{
 		return failblogSQL.getImageCacheList(pageNumber, recordsPerPage);
+	}
+
+	public void saveImageCacheLocalImageUri(int id, String localImageUri)
+	{
+		failblogSQL.saveImageCacheLocalImageUri(id, localImageUri);
 	}
 }
