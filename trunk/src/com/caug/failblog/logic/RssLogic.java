@@ -122,6 +122,16 @@ public class RssLogic extends BaseLogic
         }
 	}
 	
+	public void saveImageCacheFavorite(int id, boolean favorite)
+	{
+		failblogSQL.saveImageCacheFavorite(id, favorite);
+	}
+	
+	public List<ImageCache> getImageCacheListByFavorite(int pageNumber, int recordsPerPage)
+	{
+		return failblogSQL.getImageCacheListByFavorite(pageNumber, recordsPerPage);
+	}
+	
 	public List<ImageCache> getImageCacheList(int pageNumber, int recordsPerPage)
 	{
 		return failblogSQL.getImageCacheList(pageNumber, recordsPerPage);

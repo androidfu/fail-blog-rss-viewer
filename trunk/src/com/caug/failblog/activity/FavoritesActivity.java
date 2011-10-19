@@ -17,11 +17,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.caug.failblog.logic.RssLogic;
 import com.caug.failblog.other.FavoriteMaster;
+import com.caug.failblog.other.ImageCache;
 
 public class FavoritesActivity extends ListActivity
 {
-	private ArrayList<FavoriteMaster> favoriteMasterList;
+	private ArrayList<ImageCache> imageCacheList;
+	
+	private RssLogic rssLogic;
 	
 	private FavoritesAdapter favoritesAdapter;
 	
@@ -30,36 +34,34 @@ public class FavoritesActivity extends ListActivity
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.favorites);
+        rssLogic = new RssLogic(this);
         
-        buildSampleData();
+        buildFavoritesList();
         
         if(favoritesAdapter == null)
 		{
-        	favoritesAdapter = new FavoritesAdapter(this, R.layout.row_favorite, favoriteMasterList);
+        	favoritesAdapter = new FavoritesAdapter(this, R.layout.row_favorite, imageCacheList);
 	        setListAdapter(favoritesAdapter);
 		}
 		else
 		{
 			favoritesAdapter.clear();
 			
-			for(FavoriteMaster favoriteMaster : favoriteMasterList)
+			for(ImageCache imageCache : imageCacheList)
 			{
-				favoritesAdapter.add(favoriteMaster);
+				favoritesAdapter.add(imageCache);
 			}
 
 			favoritesAdapter.notifyDataSetChanged();
 		}
     }
     
-    private void buildSampleData()
+    private void buildFavoritesList()
     {
-    	favoriteMasterList = new ArrayList<FavoriteMaster>();
-    	for(int i = 0; i < 10; i++)
+    	imageCacheList = (ArrayList<ImageCache>)rssLogic.getImageCacheListByFavorite(0, 1);
+    	if(imageCacheList != null)
     	{
-    		FavoriteMaster favoriteMaster = new FavoriteMaster();
-    		favoriteMaster.setName("Picture number " + i);
-    		
-    		favoriteMasterList.add(favoriteMaster);
+    		Toast.makeText(this, imageCacheList.size() + " favorites.", Toast.LENGTH_SHORT).show();
     	}
     }
     
@@ -69,22 +71,22 @@ public class FavoritesActivity extends ListActivity
     	super.onResume();
     }
     
-    private class FavoritesAdapter extends ArrayAdapter<FavoriteMaster> 
+    private class FavoritesAdapter extends ArrayAdapter<ImageCache> 
     {
-        private ArrayList<FavoriteMaster> favoriteMasterList;
+        private ArrayList<ImageCache> imageCacheList;
 
-        public FavoritesAdapter(Context context, int textViewResourceId, ArrayList<FavoriteMaster> favoriteMasterList) 
+        public FavoritesAdapter(Context context, int textViewResourceId, ArrayList<ImageCache> imageCacheList) 
         {
-        	super(context, textViewResourceId, favoriteMasterList);
-        	this.favoriteMasterList = favoriteMasterList;
+        	super(context, textViewResourceId, imageCacheList);
+        	this.imageCacheList = imageCacheList;
         }
         
         @Override
         public int getCount()
         {
-        	if(favoriteMasterList != null)
+        	if(imageCacheList != null)
         	{
-        		return favoriteMasterList.size();
+        		return imageCacheList.size();
         	}
         	else
         	{
@@ -102,14 +104,14 @@ public class FavoritesActivity extends ListActivity
         		v = vi.inflate(R.layout.row_favorite, null);
         	}
         	
-        	FavoriteMaster favoriteMaster = favoriteMasterList.get(position);
-        	if (favoriteMaster != null) 
+        	ImageCache imageCache = imageCacheList.get(position);
+        	if (imageCache != null) 
         	{
         		TextView nameControl = (TextView) v.findViewById(R.id.tv_name);
         		
         		if(nameControl != null)
         		{
-        			nameControl.setText(favoriteMaster.getName());
+        			nameControl.setText(imageCache.getName());
         		}
         	}
         	return v;

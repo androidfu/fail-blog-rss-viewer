@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.caug.failblog.logic.RssLogic;
 import com.caug.failblog.other.ImageCache;
@@ -32,6 +33,7 @@ public class ViewerActivity extends Activity
 	private ImageView mainImage;
 	private ImageView previousImage;
 	private ImageView nextImage;
+	private ImageView favoriteImage;
 	private TextView imagePaging;
 	private TextView imageTitle;
 	
@@ -47,6 +49,7 @@ public class ViewerActivity extends Activity
 		mainImage = (ImageView) findViewById(R.id.iv_mainImage);
 		previousImage = (ImageView) findViewById(R.id.iv_previousImage);
 		nextImage = (ImageView) findViewById(R.id.iv_nextImage);
+		favoriteImage = (ImageView) findViewById(R.id.iv_favorite);
 		imagePaging = (TextView) findViewById(R.id.tv_imagePaging);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
 		
@@ -64,6 +67,13 @@ public class ViewerActivity extends Activity
 			}
 		});
 		
+		favoriteImage.setOnClickListener(new OnClickListener() {
+			public void onClick(View v)
+			{
+				saveAsFavorite(pageNumber);
+			}
+		});
+		
 		previousImage.setVisibility(View.INVISIBLE);
 		
 		rssLogic = new RssLogic(this);
@@ -77,6 +87,13 @@ public class ViewerActivity extends Activity
     {
 		super.onResume();
     }
+	
+	private void saveAsFavorite(int pageNumber)
+	{
+		ImageCache imageCache = imageCacheList.get(pageNumber - 1);
+		rssLogic.saveImageCacheFavorite(imageCache.getId(), true);
+		Toast.makeText(this, "Saved Image As Favorite.", Toast.LENGTH_SHORT).show();
+	}
 	
 	private void loadImage(int pageNumber)
 	{
