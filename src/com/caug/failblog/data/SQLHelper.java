@@ -8,10 +8,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.util.Log;
 
 public class SQLHelper extends SQLiteOpenHelper 
 {
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 1;
 	
 	private static final String DATABASE_NAME = "Failblog.db";
 
@@ -24,6 +25,7 @@ public class SQLHelper extends SQLiteOpenHelper
 																ImageCache.Columns.REMOTE_IMAGE_URI + " TEXT, " + 
 																ImageCache.Columns.REMOTE_ENTRY_URI + " TEXT, " +
 																ImageCache.Columns.GUID_HASH + " TEXT, " +
+																ImageCache.Columns.FAVORITE + " INTEGER, " +
 																ImageCache.Columns.ENTERED_DATE + " TEXT )";
 
 	public SQLHelper(Context context, String name, CursorFactory factory, int version) 
@@ -41,8 +43,13 @@ public class SQLHelper extends SQLiteOpenHelper
 	{
 		sqLiteDatabase.setLocale(Locale.getDefault());
 		sqLiteDatabase.setVersion(DATABASE_VERSION);
-
+		
 		sqLiteDatabase.execSQL(DATABASE_TABLE_IMAGE_CACHE);
+
+		sqLiteDatabase.execSQL("CREATE INDEX " + TABLE_NAME_IMAGE_CACHE + "_guid_idx ON " + TABLE_NAME_IMAGE_CACHE + " (" + ImageCache.Columns.GUID_HASH + ")");
+		sqLiteDatabase.execSQL("CREATE INDEX " + TABLE_NAME_IMAGE_CACHE + "_fav_idx ON " + TABLE_NAME_IMAGE_CACHE + " (" + ImageCache.Columns.FAVORITE + ", " + ImageCache.Columns.ENTERED_DATE + " DESC)");
+		
+		Log.d("SQLHelper", "DB Created");
 	}
 
 	@Override
@@ -50,11 +57,6 @@ public class SQLHelper extends SQLiteOpenHelper
 	{
 		if(oldVersion == 1 && newVersion == 2)
 		{
-			sqLiteDatabase.execSQL("ALTER TABLE " + TABLE_NAME_IMAGE_CACHE + " ADD COLUMN " + ImageCache.Columns.GUID_HASH + " TEXT");
-			sqLiteDatabase.execSQL("CREATE INDEX " + TABLE_NAME_IMAGE_CACHE + "_guid_idx ON " + TABLE_NAME_IMAGE_CACHE + " (" + ImageCache.Columns.GUID_HASH + ")");
-
-			sqLiteDatabase.execSQL("ALTER TABLE " + TABLE_NAME_IMAGE_CACHE + " ADD COLUMN " + ImageCache.Columns.FAVORITE + " INTEGER");
-			sqLiteDatabase.execSQL("CREATE INDEX " + TABLE_NAME_IMAGE_CACHE + "_fav_idx ON " + TABLE_NAME_IMAGE_CACHE + " (" + ImageCache.Columns.FAVORITE + ", " + ImageCache.Columns.ENTERED_DATE + " DESC)");
 		}
 		
 		if(oldVersion <= 2 && newVersion == 3)
