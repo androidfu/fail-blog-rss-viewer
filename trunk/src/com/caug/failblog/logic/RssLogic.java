@@ -85,6 +85,9 @@ public class RssLogic extends BaseLogic
         
         if(rssItemList != null && rssItemList.size() > 0)
         {
+        	// Perform a dummy delete the first time so the writable connection is used on the upgrade
+        	failblogSQL.deleteImageCache(0);
+        	
         	// Notify progress bar
         	Message msg = new Message();
         	msg.arg1 = rssItemList.size();
@@ -100,7 +103,7 @@ public class RssLogic extends BaseLogic
         		String remoteEntryUri = rssItem.getLink();
         		String guidHash = Encryption.hashToHex(remoteEntryUri);
 
-	    		if(remoteImageUri.equalsIgnoreCase("jpg") || remoteImageUri.equalsIgnoreCase("jpeg") || remoteImageUri.equalsIgnoreCase("gif") || remoteImageUri.equalsIgnoreCase("png"))
+	    		if(remoteImageUri.toLowerCase().endsWith("jpg") || remoteImageUri.toLowerCase().endsWith("jpeg") || remoteImageUri.toLowerCase().endsWith("gif") || remoteImageUri.toLowerCase().endsWith("png"))
 	    		{
 	        		// Only update the cache if the record is not there
 	        		ImageCache imageCache = failblogSQL.getImageCacheByGuidHash(guidHash);
