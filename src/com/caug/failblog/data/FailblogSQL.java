@@ -119,6 +119,42 @@ public class FailblogSQL extends BaseSQL
 		
 		return imageCacheList;
 	}
+	
+	public List<ImageCache> getImageCacheListByFavorite(int pageNumber, int recordsPerPage)
+	{
+		List<ImageCache> imageCacheList = new ArrayList<ImageCache>();
+
+		String[] projection = null; // Get all columns
+		String selection = ImageCache.Columns.FAVORITE + " = ?";
+		String[] selectionArgs = { Integer.toString(1) };
+		String sortOrder = ImageCache.Columns._ID;
+
+		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
+		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
+		sqLiteQueryBuilder.setTables(SQLHelper.TABLE_NAME_IMAGE_CACHE);
+		
+		Cursor cursor = null;
+		try
+		{
+			cursor = sqLiteQueryBuilder.query(sqLiteDatabase, projection, selection, selectionArgs, null, null, sortOrder);
+	
+			if(cursor != null && cursor.moveToPosition((pageNumber - 1) * recordsPerPage))
+			{
+				imageCacheList.add(mapImageCache(cursor));
+				while(cursor.moveToNext() && (recordsPerPage == 0 || imageCacheList.size() < recordsPerPage))
+				{
+					imageCacheList.add(mapImageCache(cursor));
+				}
+			}
+		}finally{
+			if(cursor != null)
+			{
+				cursor.close();
+			}
+		}
+		
+		return imageCacheList;
+	}
 
 	public void saveImageCache(int id, String name, String localImageUri, String remoteImageUri, String remoteEntryUri, String guidHash, boolean favorite)
 	{
