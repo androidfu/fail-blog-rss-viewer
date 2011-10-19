@@ -12,7 +12,11 @@
 							android:title="@string/title_settings_updateInterval"
 							android:summary="@string/summary_settings_updateInterval"
 							android:dialogTitle="@string/dialog_title_settings_updateInterval" />
-		
+
+		<Preference android:title="Clear All Data"
+					android:summary="Click to clear all image data."
+					android:key="preferenceClear" />
+					
 	</PreferenceCategory>
 
 </PreferenceScreen>

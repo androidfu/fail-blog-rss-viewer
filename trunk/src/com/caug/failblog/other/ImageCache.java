@@ -11,6 +11,8 @@ public class ImageCache
 		private String localImageUri;
 		private String remoteImageUri;
 		private String remoteEntryUri;
+		private String guidHash;
+		private boolean favorite;
 		private Date enteredDate;
 
 		public int getId() {
@@ -60,6 +62,14 @@ public class ImageCache
 		public void setEnteredDate(Date enteredDate) {
 			this.enteredDate = enteredDate;
 		}
+
+		public String getGuidHash() {
+			return guidHash;
+		}
+
+		public void setGuidHash(String guidHash) {
+			this.guidHash = guidHash;
+		}
 		
 	    public static final class Columns implements BaseColumns 
 	    {
@@ -67,6 +77,16 @@ public class ImageCache
 			public static final String LOCAL_IMAGE_URI = "local_image_uri";
 			public static final String REMOTE_IMAGE_URI = "remote_image_uri";
 			public static final String REMOTE_ENTRY_URI = "remote_entry_uri";
+	        public static final String GUID_HASH = "guid_hash";
+	        public static final String FAVORITE = "favorite";
 	        public static final String ENTERED_DATE = "entered_date";
 	    }
+
+		public boolean isFavorite() {
+			return favorite;
+		}
+
+		public void setFavorite(boolean favorite) {
+			this.favorite = favorite;
+		}
 }

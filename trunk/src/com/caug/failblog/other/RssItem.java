@@ -5,6 +5,7 @@ import java.util.Date;
 
 public class RssItem 
 {
+	private String uid;
 	private String title;
 	private Date publishDate;
 	private String link;
@@ -63,5 +64,13 @@ public class RssItem
 
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
+	}
+
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
 	}
 }

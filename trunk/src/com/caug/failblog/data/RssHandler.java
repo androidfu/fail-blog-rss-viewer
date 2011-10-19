@@ -18,6 +18,7 @@ public class RssHandler extends DefaultHandler
 	
 	private static final String URI_SLASH = "http://purl.org/rss/1.0/modules/slash/";
 	
+	private static final String UID = "guid";
 	private static final String ITEM = "item";
 	private static final String TITLE = "title";
 	private static final String PUB_DATE = "pubDate";
@@ -45,6 +46,10 @@ public class RssHandler extends DefaultHandler
 			if (localName.equalsIgnoreCase(TITLE))
 			{
 				currentRssItem.setTitle(builder.toString().trim());
+			}
+			else if (localName.equalsIgnoreCase(UID))
+			{
+				currentRssItem.setUid(builder.toString().trim());
 			}
 			else if (localName.equalsIgnoreCase(PUB_DATE))
 			{
@@ -108,7 +113,8 @@ public class RssHandler extends DefaultHandler
 		}
     }
 
-	public List<RssItem> getRssItemList() {
+	public List<RssItem> getRssItemList() 
+	{
 		return rssItemList;
 	}
 }
