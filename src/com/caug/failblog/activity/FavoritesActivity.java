@@ -58,7 +58,7 @@ public class FavoritesActivity extends ListActivity
     
     private void buildFavoritesList()
     {
-    	imageCacheList = (ArrayList<ImageCache>)rssLogic.getImageCacheListByFavorite(0, 1);
+    	imageCacheList = (ArrayList<ImageCache>)rssLogic.getImageCacheListByFavorite(1, 0);
     	if(imageCacheList != null)
     	{
     		Toast.makeText(this, imageCacheList.size() + " favorites.", Toast.LENGTH_SHORT).show();
