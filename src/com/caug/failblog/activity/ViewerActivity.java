@@ -24,13 +24,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.caug.failblog.R;
+import com.caug.failblog.data.FailblogSQL;
+import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.logic.RssLogic;
 import com.caug.failblog.other.ImageCache;
 
 public class ViewerActivity extends Activity 
 {
-	private List<ImageCache> imageCacheList;
-	private int pageNumber;
+	private ImageCache imageCache;
+	private int imageId;
 	
 	private ImageView mainImage;
 	private ImageView previousImage;
@@ -39,12 +42,12 @@ public class ViewerActivity extends Activity
 	private TextView imagePaging;
 	private TextView imageTitle;
 	
-	private RssLogic rssLogic;
-	
+	private static FailblogSQL failblogSQL;
+
 	private static SharedPreferences sharedPreferences;
 	
 	public static final String PREFERENCES_NAME = "fail_prefs";
-	public static final String PREFERENCE_PAGE_NUMBER = "lastPageNumber";
+	public static final String PREFERENCE_LAST_IMAGE_ID = "lastImageId";
 	
 	public void onCreate(Bundle savedInstanceState) 
     {
@@ -61,41 +64,44 @@ public class ViewerActivity extends Activity
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
 		
 		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
+
+		SQLHelper openHelper = new SQLHelper(this);
 		
+		if(failblogSQL == null)
+		{
+			failblogSQL = new FailblogSQL(openHelper);
+		}
+
 		previousImage.setOnClickListener(new OnClickListener() {
 			public void onClick(View v)
 			{
-				loadImage(--pageNumber);
+				loadPreviousImage();
 			}
 		});
 		
 		nextImage.setOnClickListener(new OnClickListener() {
 			public void onClick(View v)
 			{
-				loadImage(++pageNumber);
+				loadNextImage();
 			}
 		});
 		
 		favoriteImage.setOnClickListener(new OnClickListener() {
 			public void onClick(View v)
 			{
-				saveAsFavorite(pageNumber);
+				saveAsFavorite();
 			}
 		});
 		
 		previousImage.setVisibility(View.INVISIBLE);
 		
-		rssLogic = new RssLogic(this);
-		pageNumber = 1;
-		imageCacheList = rssLogic.getImageCacheList(pageNumber, 0);
-
-		int lastPageNumber = sharedPreferences.getInt(PREFERENCE_PAGE_NUMBER, 1);
-		if(lastPageNumber > 0)
+		imageId = sharedPreferences.getInt(PREFERENCE_LAST_IMAGE_ID, 0);
+		if(imageId > 0)
 		{
-			pageNumber = lastPageNumber;
+			loadImage();
+		}else{
+			loadNextImage();
 		}
-
-		loadImage(pageNumber);
     }
 	
 	protected void onResume()
@@ -103,24 +109,15 @@ public class ViewerActivity extends Activity
 		super.onResume();
     }
 	
-	private void saveAsFavorite(int pageNumber)
+	private void saveAsFavorite()
 	{
-		ImageCache imageCache = imageCacheList.get(pageNumber - 1);
-		rssLogic.saveImageCacheFavorite(imageCache.getId(), true);
+		failblogSQL.saveImageCacheFavorite(imageId, true);
+		
 		Toast.makeText(this, "Saved Image As Favorite.", Toast.LENGTH_SHORT).show();
 	}
 	
-	private void loadImage(int pageNumber)
+	private void displayImage(ImageCache imageCache)
 	{
-		Editor editor = sharedPreferences.edit();
-		if(editor != null)
-		{
-			editor.putInt(PREFERENCE_PAGE_NUMBER, pageNumber);
-			editor.commit();
-		}
-		
-		ImageCache imageCache = imageCacheList.get(pageNumber - 1);
-		
 		if(imageCache != null)
 		{	
 			// Load the image from local cache first
@@ -130,7 +127,7 @@ public class ViewerActivity extends Activity
 			{
 				imageUri = imageCache.getLocalImageUri();
 			}else{
-				imageUri = storeImageLocally(imageCache);
+//				imageUri = storeImageLocally(imageCache);
 				imageCache.setLocalImageUri(imageUri);
 			}
 			
@@ -138,28 +135,74 @@ public class ViewerActivity extends Activity
 			mainImage.setImageDrawable(image);
 			
 			imageTitle.setText(imageCache.getName());
-			imagePaging.setText("Image " + pageNumber + " of " + imageCacheList.size());
-			
-			if(pageNumber <= 1)
+//			imagePaging.setText("Image " + pageNumber + " of " + imageCacheList.size());
+		}		
+	}
+	
+	private void loadImage()
+	{
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_EXACT);
+		if(imageCache != null)
+		{
+			imageId = imageCache.getId();
+			Editor editor = sharedPreferences.edit();
+			if(editor != null)
 			{
-				previousImage.setVisibility(View.INVISIBLE);
+				editor.putInt(PREFERENCE_LAST_IMAGE_ID, imageId);
+				editor.commit();
 			}
-			else
-			{
-				previousImage.setVisibility(View.VISIBLE);
-			}
-			
-			if(pageNumber >= imageCacheList.size())
-			{
-				nextImage.setVisibility(View.INVISIBLE);
-			}
-			else
-			{
-				nextImage.setVisibility(View.VISIBLE);
-			}
+			displayImage(imageCache);
 		}
 	}
 	
+	private void loadNextImage()
+	{
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT);
+		if(imageCache != null)
+		{
+			imageId = imageCache.getId();
+			Editor editor = sharedPreferences.edit();
+			if(editor != null)
+			{
+				editor.putInt(PREFERENCE_LAST_IMAGE_ID, imageId);
+				editor.commit();
+			}
+			displayImage(imageCache);
+		}
+		
+		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT) == null)
+		{
+			nextImage.setVisibility(View.INVISIBLE);
+		}else{
+			nextImage.setVisibility(View.VISIBLE);
+		}
+		previousImage.setVisibility(View.VISIBLE);
+	}
+
+	private void loadPreviousImage()
+	{
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS);
+		if(imageCache != null)
+		{
+			imageId = imageCache.getId();
+			Editor editor = sharedPreferences.edit();
+			if(editor != null)
+			{
+				editor.putInt(PREFERENCE_LAST_IMAGE_ID, imageId);
+				editor.commit();
+			}
+			displayImage(imageCache);
+		}
+		
+		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS) == null)
+		{
+			previousImage.setVisibility(View.INVISIBLE);
+		}else{
+			previousImage.setVisibility(View.VISIBLE);
+		}
+		nextImage.setVisibility(View.VISIBLE);
+	}
+
 	private Drawable getImage(Context ctx, String name)
 	{
 		try {
@@ -172,51 +215,51 @@ public class ViewerActivity extends Activity
 		}
 	}
 	
-	private String storeImageLocally(ImageCache imageCache)
-	{
-		int id = imageCache.getId();
-		String guidHash = imageCache.getGuidHash();
-		String extention = "jpg";
-		int lastPeriod = imageCache.getRemoteImageUri().lastIndexOf(".");
-		if(lastPeriod > 0)
-		{
-			extention = imageCache.getRemoteImageUri().substring(lastPeriod + 1);
-		}
-
-		try {
-			InputStream inputStream = (InputStream)fetch(imageCache.getRemoteImageUri());
-			
-			FileOutputStream fos = openFileOutput(guidHash + "." + extention, Context.MODE_PRIVATE);
-			int length = -1;
-			byte[] buffer = new byte[1024];
-			
-			while((length = inputStream.read(buffer)) > 0)
-			{
-				fos.write(buffer, 0, length);
-			}
-			fos.flush();
-			fos.close();
-			inputStream.close();
-			
-			rssLogic.saveImageCacheLocalImageUri(id, guidHash + "." + extention);
-			
-		} catch (MalformedURLException e) {
-			Log.e("Get Image", "MalformedURLException", e);
-			return null;
-		} catch (IOException e) {
-			Log.e("Get Image", "IOException", e);
-			return null;
-		}
-		
-		return guidHash + "." + extention;
-	}
+//	private String storeImageLocally(ImageCache imageCache)
+//	{
+//		int id = imageCache.getId();
+//		String guidHash = imageCache.getGuidHash();
+//		String extention = "jpg";
+//		int lastPeriod = imageCache.getRemoteImageUri().lastIndexOf(".");
+//		if(lastPeriod > 0)
+//		{
+//			extention = imageCache.getRemoteImageUri().substring(lastPeriod + 1);
+//		}
+//
+//		try {
+//			InputStream inputStream = (InputStream)fetch(imageCache.getRemoteImageUri());
+//			
+//			FileOutputStream fos = openFileOutput(guidHash + "." + extention, Context.MODE_PRIVATE);
+//			int length = -1;
+//			byte[] buffer = new byte[1024];
+//			
+//			while((length = inputStream.read(buffer)) > 0)
+//			{
+//				fos.write(buffer, 0, length);
+//			}
+//			fos.flush();
+//			fos.close();
+//			inputStream.close();
+//			
+//			failblogSQL.saveImageCacheLocalImageUri(id, guidHash + "." + extention);
+//			
+//		} catch (MalformedURLException e) {
+//			Log.e("Get Image", "MalformedURLException", e);
+//			return null;
+//		} catch (IOException e) {
+//			Log.e("Get Image", "IOException", e);
+//			return null;
+//		}
+//		
+//		return guidHash + "." + extention;
+//	}
 	
-	public Object fetch(String address) throws MalformedURLException, IOException
-	{
-		URL url = new URL(address);
-		Object content = url.getContent();
-		return content;
-	}
+//	public Object fetch(String address) throws MalformedURLException, IOException
+//	{
+//		URL url = new URL(address);
+//		Object content = url.getContent();
+//		return content;
+//	}
 	
 	/*
 	 * This method is called when the activity attempts to build out the menu

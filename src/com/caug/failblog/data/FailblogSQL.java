@@ -15,20 +15,35 @@ import android.util.Log;
 
 public class FailblogSQL extends BaseSQL 
 {
+	public static final int MATCH_PREVIOUS = -1;
+	public static final int MATCH_EXACT = 0;
+	public static final int MATCH_NEXT = 1;
+	
 	public FailblogSQL(SQLiteOpenHelper openHelper) 
 	{
 		super(openHelper);
 	}
 
-	public ImageCache getImageCache(int id)
+	public ImageCache getImageCache(int id, int matchType)
 	{
 		ImageCache imageCache = null;
 
 		String[] projection = null; // Get all columns
-		String selection = ImageCache.Columns._ID + " = ?";
+		String selection = ImageCache.Columns._ID + " = ? AND " + ImageCache.Columns.LOCAL_IMAGE_URI + " IS NOT NULL";
 		String[] selectionArgs = { Integer.toString(id) };
 		String sortOrder = null;
 
+		if(matchType == MATCH_PREVIOUS)
+		{
+			selection = ImageCache.Columns._ID + " < ? AND " + ImageCache.Columns.LOCAL_IMAGE_URI + " IS NOT NULL";
+			sortOrder = ImageCache.Columns._ID + " DESC";
+		}
+		else if(matchType == MATCH_NEXT)
+		{
+			selection = ImageCache.Columns._ID + " > ? AND " + ImageCache.Columns.LOCAL_IMAGE_URI + " IS NOT NULL";
+			sortOrder = ImageCache.Columns._ID + " ASC";
+		}
+		
 		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
 		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
 		sqLiteQueryBuilder.setTables(SQLHelper.TABLE_NAME_IMAGE_CACHE);
@@ -50,6 +65,38 @@ public class FailblogSQL extends BaseSQL
 		}
 		
 		return imageCache;
+	}
+
+	public int getImageCacheCount()
+	{
+		int rowCount = 0;
+
+		String[] projection = { ImageCache.Columns._ID };
+		String selection = null;
+		String[] selectionArgs = null;
+		String sortOrder = null;
+		
+		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
+		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
+		sqLiteQueryBuilder.setTables(SQLHelper.TABLE_NAME_IMAGE_CACHE);
+		
+		Cursor cursor = null;
+		try
+		{
+			cursor = sqLiteQueryBuilder.query(sqLiteDatabase, projection, selection, selectionArgs, null, null, sortOrder);
+	
+			if(cursor != null)
+			{
+				rowCount = cursor.getCount();
+			}
+		}finally{
+			if(cursor != null)
+			{
+				cursor.close();
+			}
+		}
+		
+		return rowCount;
 	}
 
 	public ImageCache getImageCacheByGuidHash(String guidHash)
@@ -83,7 +130,8 @@ public class FailblogSQL extends BaseSQL
 		
 		return imageCache;
 	}
-	
+
+/*
 	public List<ImageCache> getImageCacheList(int pageNumber, int recordsPerPage)
 	{
 		List<ImageCache> imageCacheList = new ArrayList<ImageCache>();
@@ -119,6 +167,7 @@ public class FailblogSQL extends BaseSQL
 		
 		return imageCacheList;
 	}
+*/
 	
 	public List<ImageCache> getImageCacheListByFavorite(int pageNumber, int recordsPerPage)
 	{
@@ -156,7 +205,7 @@ public class FailblogSQL extends BaseSQL
 		return imageCacheList;
 	}
 
-	public void saveImageCache(int id, String name, String localImageUri, String remoteImageUri, String remoteEntryUri, String guidHash, boolean favorite)
+	public int saveImageCache(int id, String name, String localImageUri, String remoteImageUri, String remoteEntryUri, String guidHash, boolean favorite)
 	{
 		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
 
@@ -174,8 +223,9 @@ public class FailblogSQL extends BaseSQL
 		{
 			contentValues.put(ImageCache.Columns.ENTERED_DATE, SQL_DATE.format(new Date(System.currentTimeMillis())));
 
-			sqLiteDatabase.insert(SQLHelper.TABLE_NAME_IMAGE_CACHE, null, contentValues);
+			id = (int)sqLiteDatabase.insert(SQLHelper.TABLE_NAME_IMAGE_CACHE, null, contentValues);
 		}
+		return id;
 	}
 
 	public void saveImageCacheLocalImageUri(int id, String localImageUri)

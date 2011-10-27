@@ -7,9 +7,13 @@ import java.security.NoSuchAlgorithmException;
 import org.apache.http.HttpResponse;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
@@ -20,7 +24,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.caug.failblog.R;
 import com.caug.failblog.logic.RssLogic;
+import com.caug.failblog.service.DownloadService;
 import com.caug.failblog.service.HttpRequestBuilder;
 import com.caug.failblog.service.ResponseListener;
 
@@ -39,6 +45,29 @@ public class SplashActivity extends Activity
 	
 	private RssLogic rssLogic;
 	
+	private DownloadService downloadService;
+	
+    private ServiceConnection serviceConnection = new ServiceConnection() 
+    {
+        public void onServiceConnected(ComponentName className, IBinder service) 
+        {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+        	downloadService = ((DownloadService.DownloadServiceBinder)service).getService();
+        }
+
+        public void onServiceDisconnected(ComponentName className) 
+        {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+        	downloadService = null;
+        }
+    };
 	public void onCreate(Bundle savedInstanceState) 
     {
 		super.onCreate(savedInstanceState);
@@ -79,12 +108,25 @@ public class SplashActivity extends Activity
 				startActivity(new Intent(getBaseContext(), ViewerActivity.class));
 			}
 		});
+
+		Intent serviceIntent = new Intent(this, DownloadService.class);
 		
-		rssLogic = new RssLogic(this);
-		try {
-			rssLogic.retrieveRssEntries(onResponseReceieved, HttpRequestBuilder.TYPE_GET);
-		} catch(UnsupportedEncodingException uee) {
-			uee.printStackTrace();
+		bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+		
+		startService(serviceIntent);
+		
+		Message msg = new Message();
+		msg.what = STOP_SPLASH;
+		splashHandler.sendMessage(msg);
+
+		if(false)
+		{
+			rssLogic = new RssLogic(this);
+			try {
+				rssLogic.retrieveRssEntries(onResponseReceieved, HttpRequestBuilder.TYPE_GET);
+			} catch(UnsupportedEncodingException uee) {
+				uee.printStackTrace();
+			}
 		}
     }
 	

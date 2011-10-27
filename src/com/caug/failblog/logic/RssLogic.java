@@ -132,11 +132,6 @@ public class RssLogic extends BaseLogic
 		return failblogSQL.getImageCacheListByFavorite(pageNumber, recordsPerPage);
 	}
 	
-	public List<ImageCache> getImageCacheList(int pageNumber, int recordsPerPage)
-	{
-		return failblogSQL.getImageCacheList(pageNumber, recordsPerPage);
-	}
-
 	public void saveImageCacheLocalImageUri(int id, String localImageUri)
 	{
 		failblogSQL.saveImageCacheLocalImageUri(id, localImageUri);
