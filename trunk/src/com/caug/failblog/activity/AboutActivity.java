@@ -1,5 +1,7 @@
 package com.caug.failblog.activity;
 
+import com.caug.failblog.R;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;

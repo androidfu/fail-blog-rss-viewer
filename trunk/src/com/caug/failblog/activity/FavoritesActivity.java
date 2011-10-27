@@ -17,6 +17,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.caug.failblog.R;
 import com.caug.failblog.logic.RssLogic;
 import com.caug.failblog.other.FavoriteMaster;
 import com.caug.failblog.other.ImageCache;
@@ -121,10 +122,16 @@ public class FavoritesActivity extends ListActivity
     @Override
 	public void onListItemClick(ListView listView, View view, int position, long id)
 	{
-    	FavoriteMaster selectedFavoriteMaster = (FavoriteMaster) listView.getItemAtPosition(position);
-    	if(selectedFavoriteMaster != null)
+    	ImageCache imageCache = (ImageCache)listView.getItemAtPosition(position);
+    	if(imageCache != null)
     	{
-    		Toast.makeText(getBaseContext(), "\"" + selectedFavoriteMaster.getName() + "\" at position " + position + " clicked.", Toast.LENGTH_SHORT).show();
+    		this.finish();
+ 
+    		Intent intent = new Intent(getBaseContext(), ViewerActivity.class);
+    		
+    		intent.putExtra("id", imageCache.getId());
+    		
+    		startActivity(intent);
     	}
 	}
     

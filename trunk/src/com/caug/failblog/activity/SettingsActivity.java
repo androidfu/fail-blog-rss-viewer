@@ -1,5 +1,7 @@
 package com.caug.failblog.activity;
 
+import com.caug.failblog.R;
+
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
