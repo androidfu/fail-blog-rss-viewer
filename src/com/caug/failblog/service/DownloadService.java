@@ -72,18 +72,24 @@ public class DownloadService extends Service
 			failblogSQL = new FailblogSQL(new SQLHelper(getApplicationContext()));
 		}
 		
-		Intent serviceIntent = new Intent(this, DownloadService.class);
+		Intent serviceIntent = new Intent(getApplicationContext(), DownloadService.class);
 		startService(serviceIntent);
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) 
 	{
+		if(timerTask != null && intent.getBooleanExtra("reload", false))
+		{
+			timerTask.cancel();
+			timerTask = null;
+		}
+		
 		if(timerTask == null)
 		{
 			timerTask = new DownloadTimerTask();
 			
-			timer.schedule(timerTask, 100, 60 * 60 * 1000);
+			timer.scheduleAtFixedRate(timerTask, 100, 60 * 60 * 1000);
 		}
 		return START_STICKY;
 	}
