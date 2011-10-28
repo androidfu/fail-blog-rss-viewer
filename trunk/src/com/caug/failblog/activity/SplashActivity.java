@@ -1,11 +1,5 @@
 package com.caug.failblog.activity;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-
-import org.apache.http.HttpResponse;
-
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.ComponentName;
@@ -13,37 +7,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.caug.failblog.R;
-import com.caug.failblog.logic.RssLogic;
 import com.caug.failblog.service.DownloadService;
-import com.caug.failblog.service.HttpRequestBuilder;
-import com.caug.failblog.service.ResponseListener;
 
 public class SplashActivity extends Activity 
 {
-	private static final int STOP_SPLASH = 0;
-	
 	private ImageView splash;
 	private Animation fadeOut;
-	
-	private static HttpResponse xmlResponse;
-	private int progressTotal;
-	private int progressCurrent;
-	
-	private RssLogic rssLogic;
-	
+		
 	private DownloadService downloadService;
 	
     private ServiceConnection serviceConnection = new ServiceConnection() 
@@ -103,6 +81,7 @@ public class SplashActivity extends Activity
 		});
 
 		Intent serviceIntent = new Intent(this, DownloadService.class);
+		serviceIntent.putExtra("reload", true);
 		
 		bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 		startService(serviceIntent);

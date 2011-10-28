@@ -38,7 +38,6 @@ public class ViewerActivity extends Activity
 	private ImageView previousImage;
 	private ImageView nextImage;
 	private ImageView favoriteImage;
-	private TextView imagePaging;
 	private TextView imageTitle;
 	private View imageOverlay;
 	
@@ -68,7 +67,6 @@ public class ViewerActivity extends Activity
 		previousImage = (ImageView) findViewById(R.id.iv_previousImage);
 		nextImage = (ImageView) findViewById(R.id.iv_nextImage);
 		favoriteImage = (ImageView) findViewById(R.id.iv_favorite);
-		imagePaging = (TextView) findViewById(R.id.tv_imagePaging);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
 		imageOverlay = findViewById(R.id.imageOverlay);
 		
