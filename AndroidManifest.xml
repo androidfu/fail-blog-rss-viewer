@@ -30,6 +30,8 @@
 
         <activity android:name=".activity.ViewerActivity"></activity>
 
+        <activity android:name=".activity.FavoriteViewerActivity"></activity>
+
 		<service android:name=".service.DownloadService"></service>
     </application>
     
