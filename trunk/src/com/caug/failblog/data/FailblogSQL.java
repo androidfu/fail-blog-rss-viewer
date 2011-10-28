@@ -18,13 +18,17 @@ public class FailblogSQL extends BaseSQL
 	public static final int MATCH_PREVIOUS = -1;
 	public static final int MATCH_EXACT = 0;
 	public static final int MATCH_NEXT = 1;
-	
+
+	public static final int FAVORITE_INCLUDE = 0;
+	public static final int FAVORITE_EXCLUDE = 1;
+	public static final int FAVORITE_ONLY = 2;
+
 	public FailblogSQL(SQLiteOpenHelper openHelper) 
 	{
 		super(openHelper);
 	}
 
-	public ImageCache getImageCache(int id, int matchType)
+	public ImageCache getImageCache(int id, int matchType, int favoriteType)
 	{
 		ImageCache imageCache = null;
 
@@ -42,6 +46,15 @@ public class FailblogSQL extends BaseSQL
 		{
 			selection = ImageCache.Columns._ID + " > ? AND " + ImageCache.Columns.LOCAL_IMAGE_URI + " IS NOT NULL";
 			sortOrder = ImageCache.Columns._ID + " ASC";
+		}
+		
+		if(favoriteType == FAVORITE_EXCLUDE)
+		{
+			selection += " AND " + ImageCache.Columns.FAVORITE + " = 0";
+		}
+		else if(favoriteType == FAVORITE_ONLY)
+		{
+			selection += " AND " + ImageCache.Columns.FAVORITE + " = 1";
 		}
 		
 		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
@@ -130,44 +143,6 @@ public class FailblogSQL extends BaseSQL
 		
 		return imageCache;
 	}
-
-/*
-	public List<ImageCache> getImageCacheList(int pageNumber, int recordsPerPage)
-	{
-		List<ImageCache> imageCacheList = new ArrayList<ImageCache>();
-
-		String[] projection = null; // Get all columns
-		String selection = null;
-		String[] selectionArgs = null;
-		String sortOrder = ImageCache.Columns._ID;
-
-		SQLiteQueryBuilder sqLiteQueryBuilder = new SQLiteQueryBuilder();
-		SQLiteDatabase sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
-		sqLiteQueryBuilder.setTables(SQLHelper.TABLE_NAME_IMAGE_CACHE);
-		
-		Cursor cursor = null;
-		try
-		{
-			cursor = sqLiteQueryBuilder.query(sqLiteDatabase, projection, selection, selectionArgs, null, null, sortOrder);
-	
-			if(cursor != null && cursor.moveToPosition((pageNumber - 1) * recordsPerPage))
-			{
-				imageCacheList.add(mapImageCache(cursor));
-				while(cursor.moveToNext() && (recordsPerPage == 0 || imageCacheList.size() < recordsPerPage))
-				{
-					imageCacheList.add(mapImageCache(cursor));
-				}
-			}
-		}finally{
-			if(cursor != null)
-			{
-				cursor.close();
-			}
-		}
-		
-		return imageCacheList;
-	}
-*/
 	
 	public List<ImageCache> getImageCacheListByFavorite(int pageNumber, int recordsPerPage)
 	{

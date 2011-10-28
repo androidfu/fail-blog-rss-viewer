@@ -127,7 +127,7 @@ public class FavoritesActivity extends ListActivity
     	{
     		this.finish();
  
-    		Intent intent = new Intent(getBaseContext(), ViewerActivity.class);
+    		Intent intent = new Intent(getBaseContext(), FavoriteViewerActivity.class);
     		
     		intent.putExtra("id", imageCache.getId());
     		

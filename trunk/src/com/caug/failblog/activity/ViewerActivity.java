@@ -1,11 +1,7 @@
 package com.caug.failblog.activity;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,8 +14,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,7 +27,6 @@ import android.widget.Toast;
 import com.caug.failblog.R;
 import com.caug.failblog.data.FailblogSQL;
 import com.caug.failblog.data.SQLHelper;
-import com.caug.failblog.logic.RssLogic;
 import com.caug.failblog.other.ImageCache;
 
 public class ViewerActivity extends Activity 
@@ -41,14 +40,23 @@ public class ViewerActivity extends Activity
 	private ImageView favoriteImage;
 	private TextView imagePaging;
 	private TextView imageTitle;
+	private View imageOverlay;
 	
 	private static FailblogSQL failblogSQL;
 
 	private static SharedPreferences sharedPreferences;
-	
+
+	private Animation fadeOut;
+	private Animation fadeIn;
+
 	public static final String PREFERENCES_NAME = "fail_prefs";
 	public static final String PREFERENCE_LAST_IMAGE_ID = "lastImageId";
-	
+
+	protected int getFavoriteType()
+	{
+		return FailblogSQL.FAVORITE_INCLUDE;
+	}
+
 	public void onCreate(Bundle savedInstanceState) 
     {
 		super.onCreate(savedInstanceState);
@@ -62,9 +70,12 @@ public class ViewerActivity extends Activity
 		favoriteImage = (ImageView) findViewById(R.id.iv_favorite);
 		imagePaging = (TextView) findViewById(R.id.tv_imagePaging);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
+		imageOverlay = findViewById(R.id.imageOverlay);
 		
 		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
 
+		imageId = getIntent().getIntExtra("id", 0);
+		
 		SQLHelper openHelper = new SQLHelper(this);
 		
 		if(failblogSQL == null)
@@ -72,41 +83,102 @@ public class ViewerActivity extends Activity
 			failblogSQL = new FailblogSQL(openHelper);
 		}
 
-		previousImage.setOnClickListener(new OnClickListener() {
-			public void onClick(View v)
-			{
-				loadPreviousImage();
-			}
-		});
+		previousImage.setOnClickListener(new 	OnClickListener() 
+												{
+													public void onClick(View v)
+													{
+														imageOverlay.clearAnimation();
+														imageOverlay.startAnimation(fadeOut);
+
+														loadPreviousImage();
+													}
+												});
+		previousImage.setOnLongClickListener(new	View.OnLongClickListener() 
+													{
+														@Override
+														public boolean onLongClick(View v) 
+														{
+															imageId = 0;
+															loadNextImage();
+															previousImage.setVisibility(View.GONE);
+															return true;
+														}
+													});
 		
-		nextImage.setOnClickListener(new OnClickListener() {
-			public void onClick(View v)
-			{
-				loadNextImage();
-			}
-		});
+		nextImage.setOnClickListener(new 	View.OnClickListener() 
+											{
+												public void onClick(View v)
+												{
+													imageOverlay.clearAnimation();
+													imageOverlay.startAnimation(fadeOut);
+
+													loadNextImage();
+												}
+											});
+
+		nextImage.setOnLongClickListener(new	View.OnLongClickListener() 
+												{
+													@Override
+													public boolean onLongClick(View v) 
+													{
+														imageId = Integer.MAX_VALUE;
+														loadPreviousImage();
+														nextImage.setVisibility(View.GONE);
+														return true;
+													}
+												});
+
+		favoriteImage.setOnClickListener(new 	View.OnClickListener() 
+												{
+													public void onClick(View v)
+													{
+														imageOverlay.clearAnimation();
+														imageOverlay.startAnimation(fadeOut);
+
+														saveAsFavorite();
+													}
+												});
 		
-		favoriteImage.setOnClickListener(new OnClickListener() {
-			public void onClick(View v)
-			{
-				saveAsFavorite();
-			}
-		});
+		setupFadeControls();
 		
-		previousImage.setVisibility(View.INVISIBLE);
+		// If there isn't a imageId that came in from the intent use the stored id
+		if(imageId == 0)
+		{
+			imageId = sharedPreferences.getInt(PREFERENCE_LAST_IMAGE_ID, 0);
+		}
 		
-		imageId = sharedPreferences.getInt(PREFERENCE_LAST_IMAGE_ID, 0);
 		if(imageId > 0)
 		{
 			loadImage();
 		}else{
 			loadNextImage();
 		}
+				
+		mainImage.setOnTouchListener(new View.OnTouchListener() 
+		{	
+			@Override
+			public boolean onTouch(View v, MotionEvent event) 
+			{
+				if(event.getAction() == MotionEvent.ACTION_DOWN)
+				{
+					imageOverlay.clearAnimation();
+					imageOverlay.startAnimation(fadeOut);
+				}
+				else if(event.getAction() == MotionEvent.ACTION_UP)
+				{
+					imageOverlay.clearAnimation();
+					imageOverlay.startAnimation(fadeOut);
+				}
+				return true;
+			}
+		});
     }
 	
 	protected void onResume()
     {
 		super.onResume();
+
+		imageOverlay.startAnimation(fadeOut);
     }
 	
 	private void saveAsFavorite()
@@ -116,7 +188,7 @@ public class ViewerActivity extends Activity
 		Toast.makeText(this, "Saved Image As Favorite.", Toast.LENGTH_SHORT).show();
 	}
 	
-	private void displayImage(ImageCache imageCache)
+	protected void displayImage(ImageCache imageCache)
 	{
 		if(imageCache != null)
 		{	
@@ -126,22 +198,19 @@ public class ViewerActivity extends Activity
 			if(imageCache.getLocalImageUri() != null && imageCache.getLocalImageUri().trim().length() > 0)
 			{
 				imageUri = imageCache.getLocalImageUri();
-			}else{
-//				imageUri = storeImageLocally(imageCache);
-				imageCache.setLocalImageUri(imageUri);
+
+				image = getImage(this, imageUri);
+				mainImage.setImageDrawable(image);
 			}
-			
-			image = getImage(this, imageUri);
-			mainImage.setImageDrawable(image);
 			
 			imageTitle.setText(imageCache.getName());
 //			imagePaging.setText("Image " + pageNumber + " of " + imageCacheList.size());
 		}		
 	}
 	
-	private void loadImage()
+	protected void loadImage()
 	{
-		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_EXACT);
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_EXACT, getFavoriteType());
 		if(imageCache != null)
 		{
 			imageId = imageCache.getId();
@@ -153,11 +222,25 @@ public class ViewerActivity extends Activity
 			}
 			displayImage(imageCache);
 		}
+
+		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT, getFavoriteType()) == null)
+		{
+			nextImage.setVisibility(View.INVISIBLE);
+		}else{
+			nextImage.setVisibility(View.VISIBLE);
+		}
+
+		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS, getFavoriteType()) == null)
+		{
+			previousImage.setVisibility(View.INVISIBLE);
+		}else{
+			previousImage.setVisibility(View.VISIBLE);
+		}
 	}
 	
-	private void loadNextImage()
+	protected void loadNextImage()
 	{
-		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT);
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT, getFavoriteType());
 		if(imageCache != null)
 		{
 			imageId = imageCache.getId();
@@ -170,7 +253,7 @@ public class ViewerActivity extends Activity
 			displayImage(imageCache);
 		}
 		
-		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT) == null)
+		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_NEXT, getFavoriteType()) == null)
 		{
 			nextImage.setVisibility(View.INVISIBLE);
 		}else{
@@ -179,9 +262,9 @@ public class ViewerActivity extends Activity
 		previousImage.setVisibility(View.VISIBLE);
 	}
 
-	private void loadPreviousImage()
+	protected void loadPreviousImage()
 	{
-		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS);
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS, getFavoriteType());
 		if(imageCache != null)
 		{
 			imageId = imageCache.getId();
@@ -194,7 +277,7 @@ public class ViewerActivity extends Activity
 			displayImage(imageCache);
 		}
 		
-		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS) == null)
+		if(failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_PREVIOUS, getFavoriteType()) == null)
 		{
 			previousImage.setVisibility(View.INVISIBLE);
 		}else{
@@ -214,52 +297,6 @@ public class ViewerActivity extends Activity
 			return null;
 		}
 	}
-	
-//	private String storeImageLocally(ImageCache imageCache)
-//	{
-//		int id = imageCache.getId();
-//		String guidHash = imageCache.getGuidHash();
-//		String extention = "jpg";
-//		int lastPeriod = imageCache.getRemoteImageUri().lastIndexOf(".");
-//		if(lastPeriod > 0)
-//		{
-//			extention = imageCache.getRemoteImageUri().substring(lastPeriod + 1);
-//		}
-//
-//		try {
-//			InputStream inputStream = (InputStream)fetch(imageCache.getRemoteImageUri());
-//			
-//			FileOutputStream fos = openFileOutput(guidHash + "." + extention, Context.MODE_PRIVATE);
-//			int length = -1;
-//			byte[] buffer = new byte[1024];
-//			
-//			while((length = inputStream.read(buffer)) > 0)
-//			{
-//				fos.write(buffer, 0, length);
-//			}
-//			fos.flush();
-//			fos.close();
-//			inputStream.close();
-//			
-//			failblogSQL.saveImageCacheLocalImageUri(id, guidHash + "." + extention);
-//			
-//		} catch (MalformedURLException e) {
-//			Log.e("Get Image", "MalformedURLException", e);
-//			return null;
-//		} catch (IOException e) {
-//			Log.e("Get Image", "IOException", e);
-//			return null;
-//		}
-//		
-//		return guidHash + "." + extention;
-//	}
-	
-//	public Object fetch(String address) throws MalformedURLException, IOException
-//	{
-//		URL url = new URL(address);
-//		Object content = url.getContent();
-//		return content;
-//	}
 	
 	/*
 	 * This method is called when the activity attempts to build out the menu
@@ -295,5 +332,28 @@ public class ViewerActivity extends Activity
 		    default:
 		        return super.onOptionsItemSelected(item);
 	    }
+	}
+
+	private void setupFadeControls()
+	{
+		fadeOut = AnimationUtils.loadAnimation(this, R.anim.fadeout);
+		fadeOut.setAnimationListener(new AnimationListener()
+		{
+
+			public void onAnimationStart(Animation animation)
+			{
+				// Do nothing
+			}
+			
+			public void onAnimationRepeat(Animation animation)
+			{
+				// Do nothing
+			}
+			
+			public void onAnimationEnd(Animation animation)
+			{
+				imageOverlay.setVisibility(View.GONE);
+			}
+		});
 	}
 }

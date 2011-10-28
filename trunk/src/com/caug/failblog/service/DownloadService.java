@@ -37,7 +37,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -72,6 +71,9 @@ public class DownloadService extends Service
 		{
 			failblogSQL = new FailblogSQL(new SQLHelper(getApplicationContext()));
 		}
+		
+		Intent serviceIntent = new Intent(this, DownloadService.class);
+		startService(serviceIntent);
 	}
 
 	@Override
@@ -120,8 +122,8 @@ public class DownloadService extends Service
 	            Notification notification = new Notification(R.drawable.icon, imageCount + " Failblog entries downloaded!", System.currentTimeMillis());
 	            
 	            Context context = getApplicationContext();
-	            CharSequence contentTitle = "Fail Blog Download";
-	            CharSequence contentText = imageCount + " Failblog entries downloaded!";
+	            CharSequence contentTitle = "More FAILBlog";
+	            CharSequence contentText = imageCount + " FAILBlog just arrived!";
 	            Intent notificationIntent = new Intent(DownloadService.this, SplashActivity.class);
 	            PendingIntent contentIntent = PendingIntent.getActivity(DownloadService.this, 0, notificationIntent, 0);
 	
