@@ -6,8 +6,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -86,10 +89,6 @@ public class SplashActivity extends Activity
 		bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 		startService(serviceIntent);
 		
-		// Clear any notifications from this application
-		NotificationManager notificationManager = (NotificationManager)getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
-		notificationManager.cancel(R.id.download_notification_id);
-		
 		splash.startAnimation(fadeOut);
     }
 	
@@ -98,5 +97,14 @@ public class SplashActivity extends Activity
 		super.onResume();
 		
 		splash.setVisibility(View.VISIBLE);
+
+		// Clear any notifications from this application
+		NotificationManager notificationManager = (NotificationManager)getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
+		notificationManager.cancel(R.id.download_notification_id);
+
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor editor = sharedPreferences.edit();
+		editor.putInt("downloadedImageCount", 0);
+		editor.commit();
     }
 }

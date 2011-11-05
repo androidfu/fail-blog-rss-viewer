@@ -11,7 +11,8 @@
 		<EditTextPreference android:key="updateInterval"
 							android:title="@string/title_settings_updateInterval"
 							android:summary="@string/summary_settings_updateInterval"
-							android:dialogTitle="@string/dialog_title_settings_updateInterval" />
+							android:dialogTitle="@string/dialog_title_settings_updateInterval" 
+							android:defaultValue="60" />
 
 		<Preference android:title="Clear All Data"
 					android:summary="Click to clear all image data."

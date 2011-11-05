@@ -36,13 +36,17 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Binder;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class DownloadService extends Service 
 {
 	private NotificationManager notificationManager;
+	private SharedPreferences sharedPreferences;
 	
 	private Timer timer = null;
 	private TimerTask timerTask = null;
@@ -63,6 +67,8 @@ public class DownloadService extends Service
 	{
 		super.onCreate();
 		
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
 		timer = new Timer(true);
 
 		notificationManager = (NotificationManager)getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
@@ -79,6 +85,10 @@ public class DownloadService extends Service
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) 
 	{
+		int updateInterval = 60;
+		
+		try{ updateInterval = Integer.parseInt(sharedPreferences.getString("updateInterval", "60")); }catch(Exception e){}
+		
 		if(timerTask != null && intent.getBooleanExtra("reload", false))
 		{
 			timerTask.cancel();
@@ -89,7 +99,7 @@ public class DownloadService extends Service
 		{
 			timerTask = new DownloadTimerTask();
 			
-			timer.scheduleAtFixedRate(timerTask, 100, 60 * 60 * 1000);
+			timer.scheduleAtFixedRate(timerTask, 100, updateInterval * 60 * 1000);
 		}
 		return START_STICKY;
 	}
@@ -114,22 +124,34 @@ public class DownloadService extends Service
 		@Override
 		public void run() 
 		{
-			int imageCount = 0;
+            Context context = getApplicationContext();
+
+            int downloadedImageCount = 0;
+
+    		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+   			downloadedImageCount = sharedPreferences.getInt("downloadedImageCount", 0);
 			
 			try
 			{
-				imageCount = retrieveRssEntries(HttpRequestBuilder.TYPE_GET);
+				downloadedImageCount += retrieveRssEntries(HttpRequestBuilder.TYPE_GET);
+				
+				Editor editor = sharedPreferences.edit();
+				editor.putInt("downloadedImageCount", downloadedImageCount);
+				editor.commit();
+				
 			}catch(Exception e){
 				Log.e("Download Service", "Retrieve Error", e);
 			}
 			
-			if(imageCount > 0)
+			if(downloadedImageCount > 0)
 			{
-	            Notification notification = new Notification(R.drawable.icon, imageCount + " Failblog entries downloaded!", System.currentTimeMillis());
+				notificationManager.cancel(R.id.download_notification_id);
+				
+	            Notification notification = new Notification(R.drawable.icon, downloadedImageCount + " Failblog entries downloaded!", System.currentTimeMillis());
 	            
-	            Context context = getApplicationContext();
 	            CharSequence contentTitle = "More FAILBlog";
-	            CharSequence contentText = imageCount + " FAILBlog just arrived!";
+	            CharSequence contentText = downloadedImageCount + " FAILBlog just arrived!";
 	            Intent notificationIntent = new Intent(DownloadService.this, SplashActivity.class);
 	            PendingIntent contentIntent = PendingIntent.getActivity(DownloadService.this, 0, notificationIntent, 0);
 	
