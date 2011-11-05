@@ -2,10 +2,13 @@ package com.caug.failblog.activity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.List;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -16,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -23,14 +27,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.caug.failblog.R;
-import com.caug.failblog.logic.RssLogic;
+import com.caug.failblog.data.FailblogSQL;
+import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.other.ImageCache;
 
 public class FavoritesActivity extends ListActivity
 {
-	private ArrayList<ImageCache> imageCacheList;
+	public static final int DIALOG_DELETE_CONFIRMATION = 0;
 	
-	private RssLogic rssLogic;
+	private Context context = null;
+	private int imageId = 0;
+	private String imageName = null;
+
+	private FailblogSQL failblogSQL;
+
+	private List<ImageCache> imageCacheList;
 	
 	private FavoritesAdapter favoritesAdapter;
 	
@@ -39,8 +50,14 @@ public class FavoritesActivity extends ListActivity
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.favorites);
-        rssLogic = new RssLogic(this);
-        
+    
+        context = this;
+
+		if(failblogSQL == null)
+		{
+			failblogSQL = new FailblogSQL(new SQLHelper(context));
+		}
+
         buildFavoritesList();
         
         if(favoritesAdapter == null)
@@ -59,11 +76,24 @@ public class FavoritesActivity extends ListActivity
 
 			favoritesAdapter.notifyDataSetChanged();
 		}
-    }
+
+        ListView listView = getListView();
+		if(listView != null)
+		{
+			listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() 
+													{
+														@Override
+														public boolean onItemLongClick(AdapterView parent, View view, int position, long id) 
+														{
+															return onListItemLongClick(parent, view, position, id);
+														}
+													});
+		}
+	}
     
     private void buildFavoritesList()
     {
-    	imageCacheList = (ArrayList<ImageCache>)rssLogic.getImageCacheListByFavorite(1, 0);
+    	imageCacheList = failblogSQL.getImageCacheListByFavorite(1, 0);
     	if(imageCacheList != null)
     	{
     		Toast.makeText(this, imageCacheList.size() + " favorites.", Toast.LENGTH_SHORT).show();
@@ -78,9 +108,9 @@ public class FavoritesActivity extends ListActivity
     
     private class FavoritesAdapter extends ArrayAdapter<ImageCache> 
     {
-        private ArrayList<ImageCache> imageCacheList;
+        private List<ImageCache> imageCacheList;
 
-        public FavoritesAdapter(Context context, int textViewResourceId, ArrayList<ImageCache> imageCacheList) 
+        public FavoritesAdapter(Context context, int textViewResourceId, List<ImageCache> imageCacheList) 
         {
         	super(context, textViewResourceId, imageCacheList);
         	this.imageCacheList = imageCacheList;
@@ -162,7 +192,21 @@ public class FavoritesActivity extends ListActivity
     		startActivity(intent);
     	}
 	}
-    
+
+	protected boolean onListItemLongClick(AdapterView parent, View view, int position, long id) 
+	{
+		ImageCache imageCache = (ImageCache)parent.getAdapter().getItem(position);
+    	if(imageCache != null)
+    	{
+    		imageId = imageCache.getId();
+    		imageName = imageCache.getName();
+    		
+    		showDialog(DIALOG_DELETE_CONFIRMATION);
+    	}
+
+		return true;
+	}
+	
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) 
 	{
@@ -184,5 +228,59 @@ public class FavoritesActivity extends ListActivity
 		    default:
 		        return super.onOptionsItemSelected(item);
 	    }
+	}
+
+	private Dialog createRemoveFavoriteConfirm()
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
+		builder.setMessage("Are you sure you want to remove this from your list of favorites?")
+		       .setCancelable(false)
+		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) 
+					{
+						removeFavorite(imageId);
+						
+						List<ImageCache> tempImageCacheList = imageCacheList;
+
+						ImageCache removeImageCache = null;
+						for(ImageCache imageCache : tempImageCacheList)
+						{
+							if(imageCache.getId() == imageId)
+							{
+								removeImageCache = imageCache;
+							}
+						}
+						   
+						if(removeImageCache != null)
+						{
+							favoritesAdapter.remove(removeImageCache);
+							favoritesAdapter.notifyDataSetChanged();
+						}
+		           }
+		       })
+		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                dialog.cancel();
+		           }
+		       });
+
+		return builder.create();
+	}
+
+	private void removeFavorite(int id)
+	{
+		failblogSQL.saveImageCacheFavorite(id, false);
+		
+		Toast.makeText(context, imageName + " removed from list.", Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	protected Dialog onCreateDialog(int id) 
+	{
+		if(id == DIALOG_DELETE_CONFIRMATION)
+		{
+			return createRemoveFavoriteConfirm();
+		}
+		return super.onCreateDialog(id);
 	}
 }
