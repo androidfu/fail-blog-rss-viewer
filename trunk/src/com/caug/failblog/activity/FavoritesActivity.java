@@ -1,11 +1,15 @@
 package com.caug.failblog.activity;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,13 +17,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.caug.failblog.R;
 import com.caug.failblog.logic.RssLogic;
-import com.caug.failblog.other.FavoriteMaster;
 import com.caug.failblog.other.ImageCache;
 
 public class FavoritesActivity extends ListActivity
@@ -104,15 +108,39 @@ public class FavoritesActivity extends ListActivity
         		LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         		v = vi.inflate(R.layout.row_favorite, null);
         	}
-        	
+        	        	
         	ImageCache imageCache = imageCacheList.get(position);
         	if (imageCache != null) 
         	{
-        		TextView nameControl = (TextView) v.findViewById(R.id.tv_name);
-        		
+        		TextView nameControl = (TextView) v.findViewById(R.id.tv_name);        		
         		if(nameControl != null)
         		{
         			nameControl.setText(imageCache.getName());
+        		}
+        		
+        		ImageView imageView = (ImageView)v.findViewById(R.id.icon);
+        		Drawable drawable = null;
+        		if(imageView != null && imageCache.getLocalImageUri() != null && imageCache.getLocalImageUri().trim().length() > 0)
+        		{
+        			try
+        			{
+	        			InputStream inputStream = null;
+	        			String imageUri = imageCache.getLocalImageUri();
+	        			try {
+	        				inputStream = openFileInput(imageUri);
+	        				drawable = Drawable.createFromStream(inputStream, "src");
+	            			if(drawable != null)
+	            			{
+	            				imageView.setImageDrawable(drawable);
+	            			}
+	        			} catch (IOException e) {
+	        				Log.e("Get Image", "IOException", e);
+	        			}finally{
+	        				if(inputStream != null){ inputStream.close(); }
+	        			}
+        			}catch(Exception e){
+        				// Do nothing, the default icon will just be displayed
+        			}
         		}
         	}
         	return v;
