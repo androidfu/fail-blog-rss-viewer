@@ -11,16 +11,18 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
-import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,13 +43,13 @@ public class ViewerActivity extends Activity
 	private ImageView favoriteImage;
 	private TextView imageTitle;
 	private View imageOverlay;
+	private View layoutBackground;
 	
 	private static FailblogSQL failblogSQL;
 
 	private static SharedPreferences sharedPreferences;
 
 	private Animation fadeOut;
-	private Animation fadeIn;
 
 	public static final String PREFERENCES_NAME = "fail_prefs";
 	public static final String PREFERENCE_LAST_IMAGE_ID = "lastImageId";
@@ -70,6 +72,7 @@ public class ViewerActivity extends Activity
 		favoriteImage = (ImageView) findViewById(R.id.iv_favorite);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
 		imageOverlay = findViewById(R.id.imageOverlay);
+		layoutBackground = findViewById(R.id.layoutBackground);
 		
 		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
 
@@ -153,24 +156,9 @@ public class ViewerActivity extends Activity
 			loadNextImage();
 		}
 				
-		mainImage.setOnTouchListener(new View.OnTouchListener()
-		{	
-			@Override
-			public boolean onTouch(View v, MotionEvent event) 
-			{
-				if(event.getAction() == MotionEvent.ACTION_DOWN)
-				{
-					imageOverlay.clearAnimation();
-					imageOverlay.startAnimation(fadeOut);
-				}
-				else if(event.getAction() == MotionEvent.ACTION_UP)
-				{
-					imageOverlay.clearAnimation();
-					imageOverlay.startAnimation(fadeOut);
-				}
-				return true;
-			}
-		});
+		layoutBackground.setOnTouchListener(new DisplayTouchListener());
+		
+		mainImage.setOnTouchListener(new DisplayTouchListener());
     }
 	
 	protected void onResume()
@@ -355,4 +343,23 @@ public class ViewerActivity extends Activity
 			}
 		});
 	}
+
+	class DisplayTouchListener implements View.OnTouchListener
+	{	
+		@Override
+		public boolean onTouch(View v, MotionEvent event) 
+		{
+			if(event.getAction() == MotionEvent.ACTION_DOWN)
+			{
+				imageOverlay.clearAnimation();
+				imageOverlay.startAnimation(fadeOut);
+			}
+			else if(event.getAction() == MotionEvent.ACTION_UP)
+			{
+				imageOverlay.clearAnimation();
+				imageOverlay.startAnimation(fadeOut);
+			}
+			return true;
+		}
+	} 
 }

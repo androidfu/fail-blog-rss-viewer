@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:id="@+id/layoutBackground"
+    android:background="#FFFFFF">
 	
 	<ImageView android:id="@+id/iv_mainImage" 
 			   android:layout_width="wrap_content" 
@@ -44,12 +46,21 @@
 						   android:layout_centerHorizontal="true"
 						   android:src="@drawable/share" />
 					   
-				<TextView android:id="@+id/tv_shareLabel" 
-						  android:text="@string/share_label"
-						  android:layout_height="wrap_content"
-						  android:layout_width="wrap_content"
-						  android:layout_below="@id/iv_share"
-						  android:layout_centerHorizontal="true" />
+				<LinearLayout android:layout_width="wrap_content"
+							  android:layout_height="wrap_content"
+							  android:layout_margin="2dip"
+							  android:background="#000000"
+							  android:padding="2dip"
+							  android:layout_below="@id/iv_share"
+							  android:layout_centerHorizontal="true">
+
+					<TextView android:id="@+id/tv_shareLabel" 
+							  android:text="@string/share_label"
+							  android:layout_height="wrap_content"
+							  android:layout_width="wrap_content"
+							  android:layout_centerHorizontal="true" />
+				
+				</LinearLayout>
 				
 			</RelativeLayout>
 			
@@ -64,24 +75,42 @@
 						   android:layout_centerHorizontal="true"
 						   android:src="@drawable/favorite" />
 						   
-				<TextView android:id="@+id/tv_favoriteLabel" 
-						  android:text="@string/favorite_label"
-						  android:layout_width="wrap_content" 
-						  android:layout_height="wrap_content"
-						  android:layout_below="@id/iv_favorite" 
-						  android:layout_centerHorizontal="true" />
-						   
+				<LinearLayout android:layout_width="wrap_content"
+							  android:layout_height="wrap_content"
+							  android:layout_margin="2dip"
+							  android:background="#000000"
+							  android:padding="2dip"
+							  android:layout_below="@id/iv_favorite"
+							  android:layout_centerHorizontal="true">
+
+					<TextView android:id="@+id/tv_favoriteLabel" 
+							  android:text="@string/favorite_label"
+							  android:layout_width="wrap_content" 
+							  android:layout_height="wrap_content"
+							  android:layout_centerHorizontal="true" />
+
+				</LinearLayout>
+										   
 			</RelativeLayout>
 			
 		</LinearLayout>
-						  
-		<TextView android:id="@+id/tv_imageTitle" 
-				  android:layout_width="fill_parent" 
-				  android:layout_height="wrap_content"
-				  android:layout_alignParentBottom="true"
-				  android:gravity="center_horizontal"
-				  android:text="No Title" 
-				  android:layout_marginBottom="5dip"/>
+
+		<LinearLayout android:id="@+id/actionButtons"
+					  android:layout_width="fill_parent"
+					  android:layout_height="wrap_content"
+					  android:layout_margin="5dip"
+					  android:gravity="center_horizontal"
+					  android:layout_alignParentBottom="true"
+					  android:background="#000000"
+					  android:padding="2dip">
+		
+			<TextView android:id="@+id/tv_imageTitle" 
+					  android:layout_width="fill_parent" 
+					  android:layout_height="wrap_content"
+					  android:gravity="center_horizontal"
+					  android:text="No Title" />
+
+		</LinearLayout>
 				   
 	</RelativeLayout>	
 	
