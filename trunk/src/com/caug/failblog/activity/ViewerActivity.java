@@ -20,6 +20,7 @@ import android.view.View.OnClickListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
+import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -152,7 +153,7 @@ public class ViewerActivity extends Activity
 			loadNextImage();
 		}
 				
-		mainImage.setOnTouchListener(new View.OnTouchListener() 
+		mainImage.setOnTouchListener(new View.OnTouchListener()
 		{	
 			@Override
 			public boolean onTouch(View v, MotionEvent event) 
