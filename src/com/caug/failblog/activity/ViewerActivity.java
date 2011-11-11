@@ -41,6 +41,7 @@ public class ViewerActivity extends Activity
 	private ImageView previousImage;
 	private ImageView nextImage;
 	private ImageView favoriteImage;
+	private ImageView shareImage;
 	private TextView imageTitle;
 	private View imageOverlay;
 	private View layoutBackground;
@@ -70,6 +71,7 @@ public class ViewerActivity extends Activity
 		previousImage = (ImageView) findViewById(R.id.iv_previousImage);
 		nextImage = (ImageView) findViewById(R.id.iv_nextImage);
 		favoriteImage = (ImageView) findViewById(R.id.iv_favorite);
+		shareImage = (ImageView) findViewById(R.id.iv_share);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
 		imageOverlay = findViewById(R.id.imageOverlay);
 		layoutBackground = findViewById(R.id.layoutBackground);
@@ -140,6 +142,15 @@ public class ViewerActivity extends Activity
 														saveAsFavorite();
 													}
 												});
+		
+		shareImage.setOnClickListener(new	OnClickListener() 
+											{
+												@Override
+												public void onClick(View v) 
+												{
+													share();
+												}
+											});
 		
 		setupFadeControls();
 		
@@ -361,5 +372,19 @@ public class ViewerActivity extends Activity
 			}
 			return true;
 		}
-	} 
+	}
+	
+	private void share()
+	{
+		imageCache = failblogSQL.getImageCache(imageId, FailblogSQL.MATCH_EXACT, getFavoriteType());
+		if(imageCache != null)
+		{
+			Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND);
+			shareIntent.setType("text/plain");
+			shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, imageCache.getName());
+			shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, imageCache.getRemoteEntryUri());
+	
+			startActivity(Intent.createChooser(shareIntent, "Share Via -"));
+		}
+	}
 }
