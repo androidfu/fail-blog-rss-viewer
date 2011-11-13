@@ -23,6 +23,7 @@ import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,7 +33,7 @@ import com.caug.failblog.data.FailblogSQL;
 import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.other.ImageCache;
 
-public class ViewerActivity extends Activity 
+public class ViewerActivity extends Activity implements OnClickListener
 {
 	private ImageCache imageCache;
 	private int imageId;
@@ -45,6 +46,8 @@ public class ViewerActivity extends Activity
 	private TextView imageTitle;
 	private View imageOverlay;
 	private View layoutBackground;
+	private GestureDetector gestureDetector;
+	private OnTouchListener gestureListener;
 	
 	private static FailblogSQL failblogSQL;
 
@@ -77,7 +80,17 @@ public class ViewerActivity extends Activity
 		layoutBackground = findViewById(R.id.layoutBackground);
 		
 		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
-
+		
+		gestureDetector = new GestureDetector(new SwipeDetector());
+		gestureListener = new View.OnTouchListener()
+		{
+			@Override
+			public boolean onTouch(View v, MotionEvent event)
+			{
+				return gestureDetector.onTouchEvent(event);
+			}
+		};
+		
 		imageId = getIntent().getIntExtra("id", 0);
 		
 		SQLHelper openHelper = new SQLHelper(this);
@@ -167,10 +180,16 @@ public class ViewerActivity extends Activity
 			loadNextImage();
 		}
 				
-		layoutBackground.setOnTouchListener(new DisplayTouchListener());
+		layoutBackground.setOnTouchListener(gestureListener);
 		
-		mainImage.setOnTouchListener(new DisplayTouchListener());
+		mainImage.setOnClickListener(ViewerActivity.this);
+		mainImage.setOnTouchListener(gestureListener);
     }
+	
+	public void onClick(View v)
+	{
+		
+	}
 	
 	protected void onResume()
     {
@@ -385,6 +404,56 @@ public class ViewerActivity extends Activity
 			shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, imageCache.getRemoteEntryUri());
 	
 			startActivity(Intent.createChooser(shareIntent, "Share Via -"));
+		}
+	}
+	
+	class SwipeDetector extends SimpleOnGestureListener
+	{
+		private static final int SWIPE_MIN_DISTANCE = 120;
+	    private static final int SWIPE_MAX_OFF_PATH = 250;
+	    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+		
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
+		{
+			try
+			{
+				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+				{
+					return false;
+				}
+				
+                // right to left swipe
+				if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
+				{
+					loadNextImage();
+				}
+				else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
+				{
+					loadPreviousImage();
+				}
+			}catch (Exception e){
+                // nothing
+			}
+			return false;
+		}
+		
+		@Override
+		public boolean onDown(MotionEvent e)
+		{
+			imageOverlay.clearAnimation();
+			imageOverlay.startAnimation(fadeOut);
+			
+			return true;
+		}
+		
+		@Override
+		public boolean onSingleTapUp(MotionEvent e)
+		{
+			imageOverlay.clearAnimation();
+			imageOverlay.startAnimation(fadeOut);
+			
+			return true;
 		}
 	}
 }
