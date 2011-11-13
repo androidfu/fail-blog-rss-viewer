@@ -2,14 +2,13 @@ package com.caug.failblog.activity;
 
 import com.caug.failblog.R;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-public class AboutActivity extends Activity 
+public class AboutActivity extends BaseActivity 
 {
 	public void onCreate(Bundle savedInstanceState) 
     {
@@ -20,6 +19,8 @@ public class AboutActivity extends Activity
 		Button backButton = (Button) findViewById(R.id.btn_back);
 		
 		backButton.setOnClickListener(backButtonClicked);
+		
+		trackPageView("/About");
     }
 	
 	@Override

@@ -23,7 +23,6 @@ import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Animation.AnimationListener;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,7 +32,7 @@ import com.caug.failblog.data.FailblogSQL;
 import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.other.ImageCache;
 
-public class ViewerActivity extends Activity implements OnClickListener
+public class ViewerActivity extends BaseActivity implements OnClickListener
 {
 	private ImageCache imageCache;
 	private int imageId;
@@ -108,6 +107,8 @@ public class ViewerActivity extends Activity implements OnClickListener
 														imageOverlay.startAnimation(fadeOut);
 
 														loadPreviousImage();
+														
+														trackEvent("Paging", "Click", "Previous", 1);
 													}
 												});
 		previousImage.setOnLongClickListener(new	View.OnLongClickListener() 
@@ -118,6 +119,8 @@ public class ViewerActivity extends Activity implements OnClickListener
 															imageId = 0;
 															loadNextImage();
 															previousImage.setVisibility(View.GONE);
+
+															trackEvent("Paging", "LongClick", "Previous", 1);
 															return true;
 														}
 													});
@@ -130,6 +133,8 @@ public class ViewerActivity extends Activity implements OnClickListener
 													imageOverlay.startAnimation(fadeOut);
 
 													loadNextImage();
+													
+													trackEvent("Paging", "Click", "Next", 1);
 												}
 											});
 
@@ -141,6 +146,9 @@ public class ViewerActivity extends Activity implements OnClickListener
 														imageId = Integer.MAX_VALUE;
 														loadPreviousImage();
 														nextImage.setVisibility(View.GONE);
+
+														trackEvent("Paging", "LongClick", "Next", 1);
+
 														return true;
 													}
 												});
@@ -153,6 +161,8 @@ public class ViewerActivity extends Activity implements OnClickListener
 														imageOverlay.startAnimation(fadeOut);
 
 														saveAsFavorite();
+
+														trackEvent("Favorite", "Click", null, 1);
 													}
 												});
 		
@@ -162,6 +172,8 @@ public class ViewerActivity extends Activity implements OnClickListener
 												public void onClick(View v) 
 												{
 													share();
+
+													trackEvent("Share", "Click", null, 1);
 												}
 											});
 		
@@ -184,6 +196,8 @@ public class ViewerActivity extends Activity implements OnClickListener
 		
 		mainImage.setOnClickListener(ViewerActivity.this);
 		mainImage.setOnTouchListener(gestureListener);
+
+		trackPageView("/View");
     }
 	
 	public void onClick(View v)
@@ -427,10 +441,14 @@ public class ViewerActivity extends Activity implements OnClickListener
 				if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
 				{
 					loadNextImage();
+
+					trackEvent("Paging", "Swipe", "Next", 1);
 				}
 				else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
 				{
 					loadPreviousImage();
+
+					trackEvent("Paging", "Swipe", "Previous", 1);
 				}
 			}catch (Exception e){
                 // nothing

@@ -6,7 +6,6 @@ import java.util.List;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,7 +30,7 @@ import com.caug.failblog.data.FailblogSQL;
 import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.other.ImageCache;
 
-public class FavoritesActivity extends ListActivity
+public class FavoritesActivity extends BaseListActivity
 {
 	public static final int DIALOG_DELETE_CONFIRMATION = 0;
 	
@@ -89,6 +88,7 @@ public class FavoritesActivity extends ListActivity
 														}
 													});
 		}
+		trackPageView("/Favorites");
 	}
     
     private void buildFavoritesList()

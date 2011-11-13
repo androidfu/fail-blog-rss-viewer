@@ -4,9 +4,8 @@ import com.caug.failblog.R;
 
 import android.os.Bundle;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 
-public class SettingsActivity extends PreferenceActivity 
+public class SettingsActivity extends BasePreferenceActivity 
 {
 	@Override
     protected void onCreate(Bundle savedInstanceState) 
@@ -24,5 +23,6 @@ public class SettingsActivity extends PreferenceActivity
 																        return true;
 																}
 															});
+		trackPageView("/Settings");
     }
 }

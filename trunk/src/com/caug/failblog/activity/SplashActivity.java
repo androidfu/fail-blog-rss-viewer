@@ -1,6 +1,5 @@
 package com.caug.failblog.activity;
 
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -20,7 +19,7 @@ import android.widget.ImageView;
 import com.caug.failblog.R;
 import com.caug.failblog.service.DownloadService;
 
-public class SplashActivity extends Activity 
+public class SplashActivity extends BaseActivity 
 {
 	private ImageView splash;
 	private Animation fadeOut;
@@ -90,6 +89,8 @@ public class SplashActivity extends Activity
 		startService(serviceIntent);
 		
 		splash.startAnimation(fadeOut);
+		
+		trackPageView("/Splash");
     }
 	
 	protected void onResume()
