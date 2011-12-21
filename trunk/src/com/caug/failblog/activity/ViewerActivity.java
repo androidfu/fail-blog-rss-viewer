@@ -8,9 +8,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.FloatMath;
 import android.util.Log;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
@@ -32,8 +36,25 @@ import com.caug.failblog.data.FailblogSQL;
 import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.other.ImageCache;
 
-public class ViewerActivity extends BaseActivity implements OnClickListener
+public class ViewerActivity extends BaseActivity implements OnTouchListener
 {
+	Matrix matrix = new Matrix();
+	Matrix savedMatrix = new Matrix();
+	
+	static final int NONE = 0;
+	static final int DRAG = 1;
+	static final int ZOOM = 2;
+
+	private PointF startingPoint = new PointF();
+	private PointF imageCenterPoint = new PointF();
+	
+	private float pinchDistanceStart = 0;
+	
+	private int displayWidth = 0;
+	private int displayHeight = 0;
+	
+	int mode = NONE;
+	
 	private ImageCache imageCache;
 	private int imageId;
 	
@@ -46,7 +67,6 @@ public class ViewerActivity extends BaseActivity implements OnClickListener
 	private View imageOverlay;
 	private View layoutBackground;
 	private GestureDetector gestureDetector;
-	private OnTouchListener gestureListener;
 	
 	private static FailblogSQL failblogSQL;
 
@@ -80,18 +100,14 @@ public class ViewerActivity extends BaseActivity implements OnClickListener
 		
 		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
 		
-		gestureDetector = new GestureDetector(new SwipeDetector());
-		gestureListener = new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View v, MotionEvent event)
-			{
-				return gestureDetector.onTouchEvent(event);
-			}
-		};
-		
 		imageId = getIntent().getIntExtra("id", 0);
-		
+
+		// If there isn't a imageId that came in from the intent use the stored id
+		if(imageId == 0)
+		{
+			imageId = sharedPreferences.getInt(PREFERENCE_LAST_IMAGE_ID, 0);
+		}
+
 		SQLHelper openHelper = new SQLHelper(this);
 		
 		if(failblogSQL == null)
@@ -156,7 +172,7 @@ public class ViewerActivity extends BaseActivity implements OnClickListener
 		favoriteImage.setOnClickListener(new 	View.OnClickListener() 
 												{
 													public void onClick(View v)
-													{
+						 							{
 														imageOverlay.clearAnimation();
 														imageOverlay.startAnimation(fadeOut);
 
@@ -179,38 +195,108 @@ public class ViewerActivity extends BaseActivity implements OnClickListener
 		
 		setupFadeControls();
 		
-		// If there isn't a imageId that came in from the intent use the stored id
-		if(imageId == 0)
+		mainImage.setOnTouchListener(this);
+
+		mainImage.setImageMatrix(matrix);
+
+		Display display = getWindowManager().getDefaultDisplay();
+		if(display != null)
 		{
-			imageId = sharedPreferences.getInt(PREFERENCE_LAST_IMAGE_ID, 0);
+			displayWidth = display.getWidth();
+			displayHeight = display.getHeight();
 		}
 		
+		Log.i("Image", "Container H:" + displayHeight + " - W:" + displayWidth);
+
+		trackPageView("/View");
+    }
+
+	protected void onResume()
+    {
+		super.onResume();
+
 		if(imageId > 0)
 		{
 			loadImage();
 		}else{
 			loadNextImage();
 		}
-				
-		layoutBackground.setOnTouchListener(gestureListener);
-		
-		mainImage.setOnClickListener(ViewerActivity.this);
-		mainImage.setOnTouchListener(gestureListener);
-
-		trackPageView("/View");
-    }
-	
-	public void onClick(View v)
-	{
-		
-	}
-	
-	protected void onResume()
-    {
-		super.onResume();
 
 		imageOverlay.startAnimation(fadeOut);
     }
+	
+	private float getTouchDistance(MotionEvent event) 
+	{
+		float x = event.getX(0) - event.getX(1);
+		float y = event.getY(0) - event.getY(1);
+		return FloatMath.sqrt(x * x + y * y);
+	}
+
+	private void midPoint(PointF point, MotionEvent event) 
+	{
+		float x = event.getX(0) + event.getX(1);
+		float y = event.getY(0) + event.getY(1);
+		point.set(x / 2, y / 2);
+	}
+	
+	@Override
+	public boolean onTouch(View v, MotionEvent event) 
+	{
+		switch (event.getAction() & MotionEvent.ACTION_MASK) 
+		{
+			case MotionEvent.ACTION_POINTER_DOWN:
+				// Second finger down
+				pinchDistanceStart = getTouchDistance(event);
+				if(pinchDistanceStart > 10f) 
+				{
+					savedMatrix.set(matrix);
+					midPoint(imageCenterPoint, event);
+					mode = ZOOM;
+				}
+				break;		
+			case MotionEvent.ACTION_DOWN:
+				// First finger touch
+				savedMatrix.set(matrix);
+				startingPoint.x = event.getX();
+				startingPoint.y = event.getY();
+				mode = DRAG;
+				
+				imageOverlay.clearAnimation();
+				imageOverlay.startAnimation(fadeOut);
+				break;
+			case MotionEvent.ACTION_UP:
+				// All fingers up
+				imageOverlay.clearAnimation();
+				imageOverlay.startAnimation(fadeOut);
+				break;
+			case MotionEvent.ACTION_POINTER_UP:
+				mode = NONE;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				if (mode == DRAG) 
+				{
+					matrix.set(savedMatrix);
+					matrix.postTranslate(event.getX() - startingPoint.x, event.getY() - startingPoint.y);
+				}
+				else if (mode == ZOOM) 
+				{
+					float pinchDistanceEnd = getTouchDistance(event);
+					if (pinchDistanceStart > 10f) 
+					{
+						matrix.set(savedMatrix);
+						
+						float scale = pinchDistanceEnd / pinchDistanceStart;
+						
+						matrix.postScale(scale, scale, imageCenterPoint.x, imageCenterPoint.y);
+					}
+				}
+				break;
+		}
+		  
+		mainImage.setImageMatrix(matrix);
+		
+		return true;
+	}
 	
 	private void saveAsFavorite()
 	{
@@ -235,8 +321,30 @@ public class ViewerActivity extends BaseActivity implements OnClickListener
 			}
 			
 			imageTitle.setText(imageCache.getName());
-//			imagePaging.setText("Image " + pageNumber + " of " + imageCacheList.size());
-		}		
+			
+			int imageHeight = image.getMinimumHeight();
+			int imageWidth = image.getMinimumWidth();
+			
+			float heightRatio = (float)imageHeight / (float)displayHeight;
+			float widthRatio = (float)imageWidth / (float)displayWidth;
+			float scale = 1;
+			
+			if(heightRatio < widthRatio)
+			{
+				scale = 1f / widthRatio;
+			}
+			else
+			{
+				scale = 1f / heightRatio;
+			}
+			
+			matrix.setScale(scale, scale);
+			savedMatrix.set(matrix);
+
+			mainImage.invalidate();
+
+			Log.i("Image", "Image H: " + imageHeight + " - W:" + imageWidth);
+		}
 	}
 	
 	protected void loadImage()
@@ -386,25 +494,6 @@ public class ViewerActivity extends BaseActivity implements OnClickListener
 				imageOverlay.setVisibility(View.GONE);
 			}
 		});
-	}
-
-	class DisplayTouchListener implements View.OnTouchListener
-	{	
-		@Override
-		public boolean onTouch(View v, MotionEvent event) 
-		{
-			if(event.getAction() == MotionEvent.ACTION_DOWN)
-			{
-				imageOverlay.clearAnimation();
-				imageOverlay.startAnimation(fadeOut);
-			}
-			else if(event.getAction() == MotionEvent.ACTION_UP)
-			{
-				imageOverlay.clearAnimation();
-				imageOverlay.startAnimation(fadeOut);
-			}
-			return true;
-		}
 	}
 	
 	private void share()

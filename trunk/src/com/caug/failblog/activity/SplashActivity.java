@@ -26,7 +26,7 @@ public class SplashActivity extends BaseActivity
 		
 	private DownloadService downloadService;
 	
-    private ServiceConnection serviceConnection = new ServiceConnection() 
+    private final ServiceConnection serviceConnection = new ServiceConnection() 
     {
         public void onServiceConnected(ComponentName className, IBinder service) 
         {
@@ -47,6 +47,7 @@ public class SplashActivity extends BaseActivity
         	downloadService = null;
         }
     };
+    
 	public void onCreate(Bundle savedInstanceState) 
     {
 		super.onCreate(savedInstanceState);

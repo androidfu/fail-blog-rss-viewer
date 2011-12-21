@@ -6,10 +6,11 @@
     android:background="#FFFFFF">
 	
 	<ImageView android:id="@+id/iv_mainImage" 
-			   android:layout_width="wrap_content" 
-			   android:layout_height="wrap_content"
+			   android:layout_width="fill_parent" 
+			   android:layout_height="fill_parent"
 			   android:layout_centerInParent="true"
-			   android:src="@drawable/main_image" />
+			   android:src="@drawable/main_image" 
+			   android:scaleType="matrix" />
 	
 	<RelativeLayout android:id="@+id/imageOverlay"
 				    android:layout_width="fill_parent"
