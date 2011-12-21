@@ -15,8 +15,6 @@ import android.os.Bundle;
 import android.util.FloatMath;
 import android.util.Log;
 import android.view.Display;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -65,18 +63,16 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 	private ImageView shareImage;
 	private TextView imageTitle;
 	private View imageOverlay;
-	private View layoutBackground;
-	private GestureDetector gestureDetector;
 	
 	private static FailblogSQL failblogSQL;
 
 	private static SharedPreferences sharedPreferences;
 
 	private Animation fadeOut;
-
+	
 	public static final String PREFERENCES_NAME = "fail_prefs";
 	public static final String PREFERENCE_LAST_IMAGE_ID = "lastImageId";
-
+	
 	protected int getFavoriteType()
 	{
 		return FailblogSQL.FAVORITE_INCLUDE;
@@ -96,7 +92,6 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 		shareImage = (ImageView) findViewById(R.id.iv_share);
 		imageTitle = (TextView) findViewById(R.id.tv_imageTitle);
 		imageOverlay = findViewById(R.id.imageOverlay);
-		layoutBackground = findViewById(R.id.layoutBackground);
 		
 		sharedPreferences = getSharedPreferences(PREFERENCES_NAME, Activity.MODE_PRIVATE);
 		
@@ -197,8 +192,6 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 		
 		mainImage.setOnTouchListener(this);
 
-		mainImage.setImageMatrix(matrix);
-
 		Display display = getWindowManager().getDefaultDisplay();
 		if(display != null)
 		{
@@ -221,7 +214,7 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 		}else{
 			loadNextImage();
 		}
-
+	
 		imageOverlay.startAnimation(fadeOut);
     }
 	
@@ -329,21 +322,29 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 			float widthRatio = (float)imageWidth / (float)displayWidth;
 			float scale = 1;
 			
+			int xOffset = 0;
+			int yOffset = 0;
+			
 			if(heightRatio < widthRatio)
 			{
 				scale = 1f / widthRatio;
+				yOffset = 0 - Math.round((displayHeight - (float)imageHeight * scale) / 4f);
 			}
 			else
 			{
 				scale = 1f / heightRatio;
+				xOffset = 0 - Math.round((displayWidth - (float)imageWidth * scale) / 4f);
 			}
 			
-			matrix.setScale(scale, scale);
+			matrix.setScale(scale, scale, xOffset, yOffset);
+			
 			savedMatrix.set(matrix);
+
+			mainImage.setImageMatrix(matrix);
 
 			mainImage.invalidate();
 
-			Log.i("Image", "Image H: " + imageHeight + " - W:" + imageWidth);
+			Log.i("Image", "Image H:" + imageHeight + " - W:" + imageWidth);
 		}
 	}
 	
@@ -507,60 +508,6 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 			shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, imageCache.getRemoteEntryUri());
 	
 			startActivity(Intent.createChooser(shareIntent, "Share Via -"));
-		}
-	}
-	
-	class SwipeDetector extends SimpleOnGestureListener
-	{
-		private static final int SWIPE_MIN_DISTANCE = 120;
-	    private static final int SWIPE_MAX_OFF_PATH = 250;
-	    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
-		
-		@Override
-		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
-		{
-			try
-			{
-				if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
-				{
-					return false;
-				}
-				
-                // right to left swipe
-				if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
-				{
-					loadNextImage();
-
-					trackEvent("Paging", "Swipe", "Next", 1);
-				}
-				else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY)
-				{
-					loadPreviousImage();
-
-					trackEvent("Paging", "Swipe", "Previous", 1);
-				}
-			}catch (Exception e){
-                // nothing
-			}
-			return false;
-		}
-		
-		@Override
-		public boolean onDown(MotionEvent e)
-		{
-			imageOverlay.clearAnimation();
-			imageOverlay.startAnimation(fadeOut);
-			
-			return true;
-		}
-		
-		@Override
-		public boolean onSingleTapUp(MotionEvent e)
-		{
-			imageOverlay.clearAnimation();
-			imageOverlay.startAnimation(fadeOut);
-			
-			return true;
 		}
 	}
 }
