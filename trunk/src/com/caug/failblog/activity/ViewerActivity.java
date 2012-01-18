@@ -1,5 +1,6 @@
 package com.caug.failblog.activity;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -33,6 +34,7 @@ import com.caug.failblog.R;
 import com.caug.failblog.data.FailblogSQL;
 import com.caug.failblog.data.SQLHelper;
 import com.caug.failblog.other.ImageCache;
+import com.caug.failblog.util.GifDecoder;
 
 public class ViewerActivity extends BaseActivity implements OnTouchListener
 {
@@ -317,9 +319,35 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 			if(imageCache.getLocalImageUri() != null && imageCache.getLocalImageUri().trim().length() > 0)
 			{
 				imageUri = imageCache.getLocalImageUri();
-
-				image = getImage(this, imageUri);
-				mainImage.setImageDrawable(image);
+				
+				if(imageUri.toLowerCase().endsWith(".gif"))
+				{
+//					InputStream inputStream = null;
+//					try
+//					{
+//						GifDecoder decoder = new GifDecoder();
+//					
+//						inputStream = openFileInput(imageUri);
+//						decoder.read(inputStream);
+//						
+//						decoder.getFrameCount();
+//						decoder.getDelay(index);
+//						decoder.getFrame(index);
+//						
+//					}catch(Exception e) {
+						image = getImage(this, imageUri);
+						mainImage.setImageDrawable(image);
+//					}finally{
+//						if(inputStream != null)
+//						{
+//							try{ inputStream.close(); }catch(Exception e){}
+//							inputStream = null;
+//						}
+//					}
+				}else{
+					image = getImage(this, imageUri);
+					mainImage.setImageDrawable(image);
+				}
 			}
 			
 			imageTitle.setText(imageCache.getName());
