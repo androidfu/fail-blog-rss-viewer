@@ -73,6 +73,15 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 	public static final String PREFERENCES_NAME = "fail_prefs";
 	public static final String PREFERENCE_LAST_IMAGE_ID = "lastImageId";
 	
+	@Override
+	protected void onDestroy() 
+	{
+		super.onDestroy();
+		
+		// Send Data to GA
+		dispatch();
+	}
+
 	protected int getFavoriteType()
 	{
 		return FailblogSQL.FAVORITE_INCLUDE;
