@@ -35,6 +35,7 @@ public class BaseActivity extends Activity
 		    tracker.startNewSession("UA-26997352-1", this);		
 		}
 		tracker.trackPageView(page);
+		tracker.dispatch();
 	}
 	
 	protected void trackEvent(String categoty, String action, String label, int value)
@@ -45,5 +46,15 @@ public class BaseActivity extends Activity
 		    tracker.startNewSession("UA-26997352-1", this);		
 		}
 		tracker.trackEvent(categoty, action, label, value); 
+	}
+
+	public void dispatch()
+	{
+		if(tracker == null)
+		{
+			tracker = GoogleAnalyticsTracker.getInstance();
+		    tracker.startNewSession("UA-26997352-1", this);		
+		}
+		tracker.dispatch();
 	}
 }
