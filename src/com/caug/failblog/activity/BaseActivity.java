@@ -22,7 +22,6 @@ public class BaseActivity extends Activity
 		if(tracker == null)
 		{
 			tracker = GoogleAnalyticsTracker.getInstance();
-	
 		    tracker.startNewSession("UA-26997352-1", this);
 		}
 	}
