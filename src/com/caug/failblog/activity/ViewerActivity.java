@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
@@ -322,28 +323,8 @@ public class ViewerActivity extends BaseActivity implements OnTouchListener
 				
 				if(imageUri.toLowerCase().endsWith(".gif"))
 				{
-//					InputStream inputStream = null;
-//					try
-//					{
-//						GifDecoder decoder = new GifDecoder();
-//					
-//						inputStream = openFileInput(imageUri);
-//						decoder.read(inputStream);
-//						
-//						decoder.getFrameCount();
-//						decoder.getDelay(index);
-//						decoder.getFrame(index);
-//						
-//					}catch(Exception e) {
-						image = getImage(this, imageUri);
-						mainImage.setImageDrawable(image);
-//					}finally{
-//						if(inputStream != null)
-//						{
-//							try{ inputStream.close(); }catch(Exception e){}
-//							inputStream = null;
-//						}
-//					}
+					image = getImage(this, imageUri);
+					mainImage.setImageDrawable(image);
 				}else{
 					image = getImage(this, imageUri);
 					mainImage.setImageDrawable(image);
