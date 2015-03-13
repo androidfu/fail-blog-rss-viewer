@@ -1,0 +1,7 @@
+# Requested Updates #
+
+## Version 1.1 ##
+1. Zooming in on the image
+
+## Version 1.2 ##
+1. Adding AB testing on the performance of storing shared prefs on the UI thread vs in an asynch task

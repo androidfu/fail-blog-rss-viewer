@@ -1,0 +1,1 @@
+This is a fail blog RSS parser/viewer for the Cincinnati Android User group.
